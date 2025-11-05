@@ -215,13 +215,18 @@ public class WheelPicker extends Module {
             case TOGGLE_MODULE:
                 String moduleName = slot.moduleName.get();
                 if (!moduleName.isEmpty()) {
-                    Module module = Modules.get().get(moduleName);
-                    if (module != null) {
-                        module.toggle();
-                        info(String.format("%s: %s", moduleName,
-                            module.isActive() ? "§aENABLED" : "§cDISABLED"));
-                    } else {
-                        warning("Module not found: " + moduleName);
+                    String[] names = moduleName.split(";");
+                    for (String rawName : names) {
+                        String name = rawName.trim();
+                        if (name.isEmpty()) continue;
+                        Module module = Modules.get().get(name);
+                        if (module != null) {
+                            module.toggle();
+                            info(String.format("%s: %s", name,
+                                module.isActive() ? "§aENABLED" : "§cDISABLED"));
+                        } else {
+                            warning("Module not found: " + name);
+                        }
                     }
                 }
                 break;
