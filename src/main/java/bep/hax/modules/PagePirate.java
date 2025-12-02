@@ -1,4 +1,5 @@
 package bep.hax.modules;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import java.util.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -214,12 +215,16 @@ public class PagePirate extends Module {
                     InvUtils.move().from(result.slot()).to(emptySlot.slot());
                     InvUtils.swap(emptySlot.slot(), true);
                 } else {
-                    FindItemResult nonCriticalSlot = InvUtils.find(stack -> !(stack.getItem() instanceof MiningToolItem) && !(stack.isIn(ItemTags.WEAPON_ENCHANTABLE)) && !stack.contains(DataComponentTypes.FOOD));
+                    FindItemResult nonCriticalSlot = InvUtils.find(stack -> {
+                        var item = stack.getItem();
+                        boolean isMiningTool = (item instanceof net.minecraft.item.ShovelItem || item instanceof net.minecraft.item.AxeItem || item instanceof net.minecraft.item.HoeItem || item.toString().toLowerCase().contains("pickaxe"));
+                        return !isMiningTool && !(stack.isIn(ItemTags.WEAPON_ENCHANTABLE)) && !stack.contains(DataComponentTypes.FOOD);
+                    });
                     if (nonCriticalSlot.found() && nonCriticalSlot.slot() < 9) {
                         InvUtils.move().from(result.slot()).to(nonCriticalSlot.slot());
                         InvUtils.swap(nonCriticalSlot.slot(), true);
                     } else {
-                        InvUtils.move().from(result.slot()).to(mc.player.getInventory().selectedSlot);
+                        InvUtils.move().from(result.slot()).to(((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot());
                     }
                 }
             }
@@ -378,7 +383,7 @@ public class PagePirate extends Module {
                 currentDate.getMonth().toString().substring(1).toLowerCase() + "§0§o, "+rcc+"§o" + currentDate.getYear() + "§0§o.";
             piratedPages.add(coverPage);
         }
-        int slot = mc.player.getInventory().selectedSlot;
+        int slot = ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot();
         boolean shouldSign = finalizeCopy.get() && metadata != null;
         MsgUtil.sendModuleMsg("Successfully copied nearby book§a..!", this.name);
         piratedPages.addAll(filtered.stream().map(page -> page.replace("~pgprte~newline~", "\n")).toList());
@@ -401,7 +406,7 @@ public class PagePirate extends Module {
         booksInItemFrames.removeIf(frame -> frame.isRemoved() || frame.isRegionUnloaded());
         for (Entity entity : mc.world.getEntities()) {
             if (entity instanceof PlayerEntity player && !(entity instanceof ClientPlayerEntity)) {
-                String name = player.getGameProfile().getName();
+                String name = player.getGameProfile().name();
                 ItemStack mainHand = player.getStackInHand(Hand.MAIN_HAND);
                 if (mainHand.getItem() == Items.WRITTEN_BOOK) handleWrittenBook(mainHand, name);
                 else if (mainHand.getItem() == Items.WRITABLE_BOOK) handleBookAndQuill(mainHand, name);

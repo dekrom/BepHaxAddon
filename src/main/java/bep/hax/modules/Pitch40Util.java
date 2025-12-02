@@ -50,38 +50,48 @@ public class Pitch40Util extends Module {
     public Pitch40Util() {
         super(Bep.STASH, "Pitch40Util", "Makes sure pitch 40 stays on when reconnecting to 2b2t, and sets your bounds as you reach highest point each climb.");
     }
-    Module elytraFly = Modules.get().get(ElytraFly.class);
+    private Module elytraFly;
     private ElytraFlightModes oldValue;
-    private Setting<ElytraFlightModes> elytraFlyMode = (Setting<ElytraFlightModes>)elytraFly.settings.get("mode");
+    private Setting<ElytraFlightModes> elytraFlyMode;
+    private Module getElytraFly() {
+        if (elytraFly == null) elytraFly = Modules.get().get(ElytraFly.class);
+        return elytraFly;
+    }
+    @SuppressWarnings("unchecked")
+    private Setting<ElytraFlightModes> getElytraFlyMode() {
+        if (elytraFlyMode == null) elytraFlyMode = (Setting<ElytraFlightModes>) getElytraFly().settings.get("mode");
+        return elytraFlyMode;
+    }
     @Override
     public void onActivate()
     {
-        oldValue = elytraFlyMode.get();
-        elytraFlyMode.set(ElytraFlightModes.Pitch40);
+        oldValue = getElytraFlyMode().get();
+        getElytraFlyMode().set(ElytraFlightModes.Pitch40);
     }
     @Override
     public void onDeactivate()
     {
-        if (elytraFly.isActive())
+        if (getElytraFly().isActive())
         {
-            elytraFly.toggle();
+            getElytraFly().toggle();
         }
-        elytraFlyMode.set(oldValue);
+        getElytraFlyMode().set(oldValue);
     }
     int fireworkCooldown = 0;
     boolean goingUp = true;
     int elytraSwapSlot = -1;
+    @SuppressWarnings("unchecked")
     private void resetBounds()
     {
-        Setting<Double> upperBounds = (Setting<Double>) elytraFly.settings.get("pitch40-upper-bounds");
+        Setting<Double> upperBounds = (Setting<Double>) getElytraFly().settings.get("pitch40-upper-bounds");
         upperBounds.set(mc.player.getY() - 5);
-        Setting<Double> lowerBounds = (Setting<Double>) elytraFly.settings.get("pitch40-lower-bounds");
+        Setting<Double> lowerBounds = (Setting<Double>) getElytraFly().settings.get("pitch40-lower-bounds");
         lowerBounds.set(mc.player.getY() - 5 - boundGap.get());
     }
     @EventHandler
     private void onTick(TickEvent.Pre event)
     {
-        if (elytraFly.isActive())
+        if (getElytraFly().isActive())
         {
             if (fireworkCooldown > 0) {
                 fireworkCooldown--;
@@ -93,7 +103,7 @@ public class Pitch40Util extends Module {
                 InvUtils.swapBack();
                 elytraSwapSlot = -1;
             }
-            if (autoBoundAdjust.get() && mc.player.getY() <= (double)elytraFly.settings.get("pitch40-lower-bounds").get() - 10)
+            if (autoBoundAdjust.get() && mc.player.getY() <= (double)getElytraFly().settings.get("pitch40-lower-bounds").get() - 10)
             {
                 resetBounds();
                 return;
@@ -101,7 +111,7 @@ public class Pitch40Util extends Module {
             if (mc.player.getPitch() == -40)
             {
                 goingUp = true;
-                if (autoFirework.get() && mc.player.getVelocity().y < velocityThreshold.get() && mc.player.getY() < (double)elytraFly.settings.get("pitch40-upper-bounds").get())
+                if (autoFirework.get() && mc.player.getVelocity().y < velocityThreshold.get() && mc.player.getY() < (double)getElytraFly().settings.get("pitch40-upper-bounds").get())
                 {
                     if (fireworkCooldown == 0) {
                         int launchStatus = firework(mc, false);
@@ -122,7 +132,7 @@ public class Pitch40Util extends Module {
         {
             if (!mc.player.getAbilities().allowFlying)
             {
-                elytraFly.toggle();
+                getElytraFly().toggle();
                 resetBounds();
             }
         }

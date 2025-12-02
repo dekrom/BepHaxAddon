@@ -21,12 +21,4 @@ public abstract class GameRendererMixin {
             ci.cancel();
         }
     }
-    @Inject(method = "renderFloatingItem", at = @At("HEAD"), cancellable = true)
-    private void onRenderFloatingItem(CallbackInfo ci) {
-        Modules modules = Modules.get();
-        if (modules == null) return;
-        NoHurtCam noHurtCam = modules.get(NoHurtCam.class);
-        if (noHurtCam != null && noHurtCam.shouldDisableRedOverlay()) {
-        }
-    }
 }

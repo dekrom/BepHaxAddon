@@ -5,11 +5,12 @@ import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.item.*;  
+import net.minecraft.item.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
+import net.minecraft.screen.sync.ItemStackHash;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -208,8 +209,8 @@ public class Replenish extends Module {
         if (refillFireworks.get() && item == Items.FIREWORK_ROCKET) return true;
         if (refillBlocks.get() && item instanceof BlockItem) return true;
         if (refillFood.get() && item.getComponents().contains(net.minecraft.component.DataComponentTypes.FOOD)) return true;
-        if (refillTools.get() && item instanceof MiningToolItem) return true;
-        if (refillWeapons.get() && (item instanceof SwordItem || item instanceof BowItem || item instanceof CrossbowItem)) return true;
+        if (refillTools.get() && (item instanceof ShovelItem || item instanceof AxeItem || item instanceof HoeItem || item.toString().toLowerCase().contains("pickaxe"))) return true;
+        if (refillWeapons.get() && (item.toString().toLowerCase().contains("sword") || item instanceof BowItem || item instanceof CrossbowItem)) return true;
         if (refillProjectiles.get() && (item instanceof ArrowItem || item == Items.FIREWORK_ROCKET)) return true;
         if (refillPotions.get() && item instanceof PotionItem) return true;
         return false;
@@ -270,7 +271,7 @@ public class Replenish extends Module {
             ItemStack stack = mc.player.getInventory().getStack(i);
             if (stack.isEmpty()) continue;
             if (!canStack(targetStack, stack)) continue;
-            if (maintainTool.get() && targetStack.getItem() instanceof MiningToolItem) {
+            if (maintainTool.get() && (targetStack.getItem() instanceof ShovelItem || targetStack.getItem() instanceof AxeItem || targetStack.getItem() instanceof HoeItem || targetStack.getItem().toString().toLowerCase().contains("pickaxe"))) {
                 if (stack.getItem().getClass() != targetStack.getItem().getClass()) continue;
             }
             if (stackPreference.get() == StackPreference.FirstMatch) {
@@ -312,20 +313,16 @@ public class Replenish extends Module {
     }
     private void sendShiftClickPacket(int slot) {
         int syncId = mc.player.currentScreenHandler.syncId;
-        int revision = mc.player.currentScreenHandler.getRevision();
-        Int2ObjectMap<ItemStack> changedSlots = new Int2ObjectOpenHashMap<>();
-        mc.player.networkHandler.sendPacket(new ClickSlotC2SPacket(
+        mc.interactionManager.clickSlot(
             syncId,
-            revision,
             slot,
             0,
             SlotActionType.QUICK_MOVE,
-            ItemStack.EMPTY,
-            changedSlots
-        ));
+            mc.player
+        );
     }
     private void processPendingRefills() {
-        if (mc.player.currentScreenHandler == mc.player.playerScreenHandler) {
+        if (mc.player.currentScreenHandler != mc.player.playerScreenHandler) {
             return;
         }
         int processed = 0;

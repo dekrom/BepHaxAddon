@@ -14,12 +14,9 @@
     "AutoTrapMixin",
     "BetterTabMixin",
     "KillAuraMixin",
-    "FreecamMixin",
     "AutoMendMixin",
-    "NametagsMixin",
     "NoRenderMixin",
     "NotifierMixin",
-    "ExpThrowerMixin",
     "TimerMixin",
     "VelocityMixin",
     "OnlinePlayersMixin",
@@ -27,8 +24,6 @@
     "PacketCancellerMixin",
     "NoSlowMixin",
     "PlayerUtilsMixin",
-    "ClientPlayerEntityGrimV3Mixin",
-    "accessor.SettingAccessor",
-    "accessor.CategoryAccessor"
+    "ClientPlayerEntityGrimV3Mixin"
   ]
 }

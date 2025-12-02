@@ -203,7 +203,7 @@ public class HighlightOldLava extends Module
                         {
                             if ((logMode.get() == Mode.LogWebhook || logMode.get() == Mode.Both) && !webhookLink.get().isEmpty())
                             {
-                                new Thread(() -> sendWebhook(webhookLink.get(), "Old Chunk Found", "At: " + blockPos.getX() + " " + blockPos.getZ(), (ping.get() ? discordId.get() : null), mc.player.getGameProfile().getName())).start();
+                                new Thread(() -> sendWebhook(webhookLink.get(), "Old Chunk Found", "At: " + blockPos.getX() + " " + blockPos.getZ(), (ping.get() ? discordId.get() : null), mc.player.getGameProfile().name())).start();
                             }
                             if (disconnectOnFound.get()) mc.player.networkHandler.onDisconnect(new DisconnectS2CPacket(Text.literal("[HighlightOldLava] Old lava was found.")));
                             oldLava.add(blockPos);

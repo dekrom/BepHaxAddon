@@ -17,7 +17,7 @@ import bep.hax.util.MsgUtil;
 import bep.hax.util.LogUtil;
 import bep.hax.util.MapUtil;
 import net.minecraft.world.World;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.stream.Collectors;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.text.ClickEvent;
@@ -551,18 +551,7 @@ public class ChatSigns extends Module {
             }
             ++fullClusterAmount;
             lastFullClusterPos = sign.getPos();
-            Style clickESP = Style.EMPTY.withClickEvent(
-                new ClickEvent(
-                    ClickEvent.Action.RUN_COMMAND,
-                    "clickESP~chatSigns~"
-                        +sign.getPos().asLong()
-                )
-            ).withHoverEvent(
-                new HoverEvent(
-                    HoverEvent.Action.SHOW_TEXT,
-                    Text.literal(signsToHighlight.containsKey(sign.getPos()) ? "§4§oDisable §7§oESP for this sign." : "§2§oEnable §7§oESP for this sign.")
-                )
-            );
+            Style clickESP = Style.EMPTY;
             if (signMessages.containsKey(textOnSign) && !sign.getPos().equals(lastFocusedSign)) {
                 int timesSeen = signMessages.get(textOnSign) + 1;
                 signMessages.put(textOnSign, timesSeen);

@@ -1,4 +1,5 @@
 package bep.hax.modules;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Categories;
@@ -151,7 +152,7 @@ public class AutoBreed extends Module {
     }
     private void restoreSlot() {
         if (previousSlot != -1 && mc.player != null) {
-            mc.player.getInventory().selectedSlot = previousSlot;
+            ((PlayerInventoryAccessor) mc.player.getInventory()).setSelectedSlot(previousSlot);
             previousSlot = -1;
         }
     }
@@ -190,8 +191,8 @@ public class AutoBreed extends Module {
         mc.player.setPitch(MathHelper.clamp(mc.player.getPitch() + pitchDiff, -90, 90));
         if (Math.abs(yawDiff) < 2.0f && Math.abs(pitchDiff) < 2.0f && stateTicks >= 5) {
             if (targetSlot != -1) {
-                previousSlot = mc.player.getInventory().selectedSlot;
-                mc.player.getInventory().selectedSlot = targetSlot;
+                previousSlot = ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot();
+                ((PlayerInventoryAccessor) mc.player.getInventory()).setSelectedSlot(targetSlot);
                 if (debugMode.get()) {
                     ItemStack item = mc.player.getInventory().getStack(targetSlot);
                     ChatUtils.info("[AutoBreed] Switched to " + item.getName().getString() + " slot " + targetSlot);

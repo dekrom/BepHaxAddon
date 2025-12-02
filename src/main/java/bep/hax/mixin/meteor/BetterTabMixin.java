@@ -16,10 +16,8 @@ import org.spongepowered.asm.mixin.Shadow;
 @Mixin(value = BetterTab.class, remap = false)
 public class BetterTabMixin {
     @Shadow private SettingGroup sgGeneral;
-
     @Unique
     private Setting<SettingColor> bephax$enemyColor;
-
     @Inject(method = "<init>", at = @At("TAIL"))
     private void addEnemyColorSetting(CallbackInfo ci) {
         bephax$enemyColor = sgGeneral.add(new ColorSetting.Builder()
@@ -30,11 +28,10 @@ public class BetterTabMixin {
         );
         EnemyColorManager.setEnemyColorSetting(bephax$enemyColor);
     }
-
     @Inject(method = "getPlayerName", at = @At("RETURN"), cancellable = true)
     private void injectEnemyColor(PlayerListEntry playerListEntry, CallbackInfoReturnable<Text> cir) {
         if (playerListEntry == null || playerListEntry.getProfile() == null) return;
-        String playerName = playerListEntry.getProfile().getName();
+        String playerName = playerListEntry.getProfile().name();
         if (EnemyManager.getInstance().isEnemy(playerName) && bephax$enemyColor != null) {
             int color = bephax$enemyColor.get().getPacked();
             Text original = cir.getReturnValue();

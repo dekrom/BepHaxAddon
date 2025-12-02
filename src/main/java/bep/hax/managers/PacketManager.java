@@ -35,56 +35,5 @@ public class PacketManager {
         if (mc.player == null) return;
         if (!StardustConfig.antiInventoryPacketKick.get()) return;
         if (!(event.packet instanceof ClickSlotC2SPacket packet)) return;
-        if (!packet.getActionType().equals(SlotActionType.QUICK_MOVE)) return;
-        int origin = packet.getSlot();
-        ScreenHandler handler = mc.player.currentScreenHandler;
-        if (origin < 0 || origin >= handler.slots.size()) return;
-        ItemStack toMove = handler.getSlot(origin).getStack();
-        if (toMove.isEmpty()) {
-            return;
-        }
-        int start;
-        int until;
-        if (handler instanceof PlayerScreenHandler) {
-            if (origin < 9) {
-                start = 9;
-                until = 44;
-            } else if (origin < 36) {
-                start = 36;
-                until = 45;
-            } else {
-                start = 9;
-                until = 36;
-            }
-        } else {
-            if (handler.slots.size() > 63) {
-                if (origin >= 54) {
-                    start = 0;
-                    until = 54;
-                } else {
-                    start = 54;
-                    until = handler.slots.size();
-                }
-            } else {
-                if (origin >= 27) {
-                    start = 0;
-                    until = 27;
-                } else {
-                    start = 27;
-                    until = handler.slots.size();
-                }
-            }
-        }
-        boolean foundValidSlot = false;
-        for (int n = start; n < until; n++) {
-            ItemStack stack = handler.getSlot(n).getStack();
-            if (stack.isEmpty() || (ItemStack.areItemsAndComponentsEqual(toMove, stack) && stack.getCount() < stack.getMaxCount())) {
-                foundValidSlot = true;
-                break;
-            }
-        }
-        if (!foundValidSlot) {
-            event.cancel();
-        }
     }
 }

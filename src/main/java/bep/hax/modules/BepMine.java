@@ -1,6 +1,6 @@
 package bep.hax.modules;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import bep.hax.Bep;
-import bep.hax.util.TargetUtils;
 import bep.hax.util.RotationUtils;
 import bep.hax.util.InventoryManager;
 import org.lwjgl.glfw.GLFW;
@@ -613,6 +613,8 @@ public class BepMine extends Module {
             return false;
         }
         data.setStarted();
+        float breakDelta = calcBlockBreakingDelta(data.getState(), mc.world, data.getPos());
+        boolean isInstantBreak = breakDelta >= 1.0f;
         if (grimNewConfig.get()) {
             if (!miningFix.get()) {
                 mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(
@@ -628,8 +630,10 @@ public class BepMine extends Module {
             mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(
                 PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK, data.getPos(), data.getDirection()));
             mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
-            mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
-            mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
+            if (!isInstantBreak) {
+                mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
+                mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
+            }
             return true;
         }
         mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(
@@ -639,13 +643,15 @@ public class BepMine extends Module {
         mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(
             PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK, data.getPos(), data.getDirection()));
         mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
-        mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(
-            PlayerActionC2SPacket.Action.START_DESTROY_BLOCK, data.getPos(), data.getDirection()));
-        mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(
-            PlayerActionC2SPacket.Action.ABORT_DESTROY_BLOCK, data.getPos(), data.getDirection()));
-        mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(
-            PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK, data.getPos(), data.getDirection()));
-        mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
+        if (!isInstantBreak) {
+            mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(
+                PlayerActionC2SPacket.Action.START_DESTROY_BLOCK, data.getPos(), data.getDirection()));
+            mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(
+                PlayerActionC2SPacket.Action.ABORT_DESTROY_BLOCK, data.getPos(), data.getDirection()));
+            mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(
+                PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK, data.getPos(), data.getDirection()));
+            mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
+        }
         return true;
     }
     private void abortMining(MiningData data) {
@@ -668,7 +674,7 @@ public class BepMine extends Module {
             }
         }
         int bestSlot = data.getSlot();
-        int currentSlot = mc.player.getInventory().selectedSlot;
+        int currentSlot = ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot();
         boolean needsSwap = bestSlot != -1 && bestSlot != currentSlot;
         if (needsSwap && swappedToSlot == -1) {
             originalSlot = currentSlot;
@@ -686,7 +692,7 @@ public class BepMine extends Module {
     private void swapTo(int slot) {
         switch (swapConfig.get()) {
             case NORMAL -> {
-                mc.player.getInventory().selectedSlot = slot;
+                ((PlayerInventoryAccessor) mc.player.getInventory()).setSelectedSlot(slot);
                 mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(slot));
             }
             case SILENT -> {
@@ -700,7 +706,7 @@ public class BepMine extends Module {
     private void swapBack(int originalSlot) {
         switch (swapConfig.get()) {
             case NORMAL -> {
-                mc.player.getInventory().selectedSlot = originalSlot;
+                ((PlayerInventoryAccessor) mc.player.getInventory()).setSelectedSlot(originalSlot);
                 mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(originalSlot));
             }
             case SILENT -> {
@@ -766,7 +772,7 @@ public class BepMine extends Module {
         }
         if (mc.player.isSubmergedIn(FluidTags.WATER)) {
             boolean hasAquaAffinity = false;
-            ItemStack helmet = mc.player.getInventory().getArmorStack(3);
+            ItemStack helmet = mc.player.getEquippedStack(net.minecraft.entity.EquipmentSlot.HEAD);
             if (!helmet.isEmpty()) {
                 var enchantments = helmet.getEnchantments();
                 for (var entry : enchantments.getEnchantmentEntries()) {
@@ -803,7 +809,7 @@ public class BepMine extends Module {
                 bestSlot = i;
             }
         }
-        return bestSlot == -1 ? mc.player.getInventory().selectedSlot : bestSlot;
+        return bestSlot == -1 ? ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot() : bestSlot;
     }
     public boolean isMining() {
         return !miningQueue.isEmpty();

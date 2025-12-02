@@ -5,7 +5,7 @@
 [![GitHub Issues](https://img.shields.io/github/issues/dekrom/BepHaxAddon)](https://github.com/dekrom/BepHaxAddon/issues)
 [![Discord](https://img.shields.io/discord/658535415548084245?color=7289da&label=Discord&logo=discord&logoColor=white)](https://discord.gg/EGEhHNSkV8)
 
-A comprehensive Meteor Client addon with **86+ modules** designed for 2b2t.org and anarchy servers. Combines community favorites with custom enhancements, advanced combat features, automated stash hunting, and extensive quality-of-life improvements.
+A comprehensive Meteor Client addon with **76 modules** designed for 2b2t.org and anarchy servers. Combines community favorites with custom enhancements, advanced combat features, automated stash hunting, and extensive quality-of-life improvements.
 
 ## Installation
 
@@ -16,25 +16,25 @@ A comprehensive Meteor Client addon with **86+ modules** designed for 2b2t.org a
 
 ### Requirements
 
-| Dependency | Version | Notes                             |
-|------------|---------|-----------------------------------|
-| [Minecraft](https://minecraft.net/) | 1.21.4 | Required                          |
-| [Fabric Loader](https://fabricmc.net/) | 0.16.10+ | Required                          |
-| [Fabric API](https://modrinth.com/mod/fabric-api) | 0.119.3+ | Required                          |
-| [Meteor Client](https://meteorclient.com) | 1.21.4-SNAPSHOT | Required                          |
-| [Baritone](https://github.com/cabaletta/baritone) | 1.21.4-SNAPSHOT | Required                          |
+| Dependency | Version | Notes |
+|------------|---------|-------|
+| [Minecraft](https://minecraft.net/) | 1.21.10 | Required |
+| [Fabric Loader](https://fabricmc.net/) | 0.16.10+ | Required |
+| [Fabric API](https://modrinth.com/mod/fabric-api) | 0.119.3+ | Required |
+| [Meteor Client](https://meteorclient.com) | 1.21.10-SNAPSHOT | Required |
+| [Baritone](https://github.com/cabaletta/baritone) | 1.21.10-SNAPSHOT | Required |
 | [ViaFabricPlus](https://modrinth.com/mod/viafabricplus) | Latest | **Required for silent rotations** |
-| [XaeroMinimap](https://modrinth.com/mod/xaeros-minimap) | 25.2.10+ | Required for map features         |
-| [XaeroWorldMap](https://modrinth.com/mod/xaeros-world-map) | 1.39.12+ | Required for map features         |
-| [XaeroPlus](https://github.com/rfresh2/XaeroPlus) | 2.28.1+ | Required for enhanced map tools   |
+| [XaeroMinimap](https://modrinth.com/mod/xaeros-minimap) | 25.2.10+ | Required for waypoint features |
+| [XaeroWorldMap](https://modrinth.com/mod/xaeros-world-map) | 1.39.12+ | Required for map features |
+| [XaeroPlus](https://github.com/rfresh2/XaeroPlus) | 2.28.1+ | Required for enhanced map tools |
 
 **2b2t Anti-Cheat Bypass:** Connect using **protocol 1.20.4-1.20.6** via ViaFabricPlus for silent rotation modules (Phase, Criticals, Surround, GrimScaffold) and enhanced Meteor mixins (CrystalAura, AutoTrap) to work properly.
 
 ## Features
 
-**85+ modules** organized into three categories, **13 commands**, **6 HUD elements**, and **56 mixins** enhancing Meteor Client functionality.
+**76 modules** organized into three categories, **14 commands**, **6 HUD elements**, and **78 mixins** enhancing Meteor Client functionality.
 
-### 🎯 BepHax Category (Original Modules)
+### 🎯 BepHax Category (30 modules)
 
 <details>
 <summary><b>Combat & PVP</b> (5 modules)</summary>
@@ -43,18 +43,18 @@ A comprehensive Meteor Client addon with **86+ modules** designed for 2b2t.org a
 - **Criticals** - Forces critical hits (PACKET/GRIM/GRIM_V3 modes, silent rotations)
 - **Phase** - Phase through blocks (Pearl/Clip/Normal/Sand/Climb modes)
 - **Surround** - Auto obsidian surround (head cover, GrimAirPlace support)
-- **PVPModule** - Base framework for PVP modules with rotation management
+- **HotbarTotem** - Auto totem management in hotbar
 </details>
 
 <details>
-<summary><b>Mining & Resources</b> (3 modules)</summary>
+<summary><b>Mining & Resources</b> (2 modules)</summary>
 
 - **BepMine** - Advanced speedmine with queue system
 - **MineESP** - Highlights blocks being mined by others
 </details>
 
 <details>
-<summary><b>Inventory & Items</b> (5 modules)</summary>
+<summary><b>Inventory & Items</b> (6 modules)</summary>
 
 - **ShulkerOverviewModule** - Mini icons showing common items in shulkers
 - **ItemSearchBar** - Search inventory for items
@@ -65,119 +65,141 @@ A comprehensive Meteor Client addon with **86+ modules** designed for 2b2t.org a
 </details>
 
 <details>
-<summary><b>Stash Management</b> (3 modules)</summary>
+<summary><b>Stash Management</b> (2 modules)</summary>
 
 - **StashMover** - Advanced item transfer with pearl loading (`.stashmover` commands)
-- **StashMoverSelectionHandler** - Area selection for StashMover
-- **BetterStashFinder** - Enhanced stash location finder
+- **ChestTrackerModule** - Advanced chest tracking and search system
 </details>
 
 <details>
-<summary><b>Automation & Utilities</b> (6 modules)</summary>
+<summary><b>Automation & Utilities</b> (5 modules)</summary>
 
-- **AutoBreed** - Animal breeding automation
-- **AutoEXPPlus** - Experience mending automation
-- **AutoPortal** - Portal creation automation
+- **AutoCraft** - Automated crafting recipes (from Meteor Rejects)
 - **AutoRespond** - Automated response system
-- **UnfocusedFpsLimiter** - Limits FPS when window unfocused
+- **NoJumpDelay** - Removes jump delay
+- **Stripper** - Auto log stripping
 - **WheelPicker** - Random selection wheel
 </details>
 
 <details>
-<summary><b>Navigation & Movement</b> (6 modules)</summary>
-
-- **GotoPosition** - Navigate to coordinates
-- **TrailFollower** - Follow player trails
-- **TrailMaker** - Plot and follow chunk highlights on Xaero's map
-- **Pitch40Util** - 40-degree pitch mining utility
-- **GrimScaffold** - Advanced scaffold with Grim support (tower mode)
-- **YawLock** - Locks player yaw for precise movement
-</details>
-
-<details>
-<summary><b>Visual & Other</b> (4 modules)</summary>
+<summary><b>Visual & Communication</b> (7 modules)</summary>
 
 - **SignRender** - Renders sign text through walls with clustering
 - **GhostMode** - Continue playing after death
 - **NoHurtCam** - Removes hurt camera shake
 - **WebChat** - Display chat in browser
+- **LiveMessage** - Live messaging GUI system
+- **BookTools** - Advanced book editing tools
+- **MapDuplicator** - Auto duplicates filled maps (from INDICA)
 </details>
 
-### 🔍 JEFF Stash Hunting Category
+<details>
+<summary><b>Other</b> (3 modules)</summary>
 
-*Integrated from [JEFF Stash Hunting](https://github.com/miles352/meteor-stashhunting-addon) by miles352*
+- **KillEffects** - Visual/audio effects on entity death (from INDICA)
+- **RespawnPointBlocker** - Prevents setting respawn points (from INDICA)
+- **GrimScaffold** - Advanced scaffold with Grim support (tower mode)
+</details>
+
+### 🔍 Stash Hunt Category (19 modules)
+
+*Primarily integrated from [JEFF Stash Hunting](https://github.com/miles352/meteor-stashhunting-addon) by miles352*
 
 <details>
-<summary><b>Stash Hunting Modules</b> (8 modules)</summary>
+<summary><b>Stash Hunting & Navigation</b> (10 modules)</summary>
 
 - **SearchArea** - Automated chunk loading system (Rectangle/Spiral modes, save/load support)
 - **ChestIndex** - Index and search chest contents (Stash Logger)
-- **AFKVanillaFly** - AFK flying without mods using fireworks
-- **NoJumpDelay** - Removes jump delay
-- **GrimAirPlace** - Grim-compatible air placement
+- **BetterStashFinder** - Enhanced stash location finder
+- **GotoPosition** - Navigate to coordinates
+- **TrailFollower** - Follow player trails
+- **TrailMaker** - Plot and follow chunk highlights on Xaero's map
+- **Pitch40Util** - 40-degree pitch mining utility
 - **HighlightOldLava** - Highlights ancient lava sources
-- **VanityESP** - Custom entity ESP for vanity items (item frames with maps, banners)
-- **ElytraFlyPlusPlus** - Enhanced elytra flight controls with auto firework
 - **OldChunkNotifier** - Notifies when entering old chunks
+- **VanityESP** - Custom entity ESP for vanity items (item frames with maps, banners)
 </details>
 
-### ⭐ Stardust Category
+<details>
+<summary><b>Flight & Movement</b> (3 modules)</summary>
+
+- **AFKVanillaFly** - AFK flying without mods using fireworks
+- **ElytraFlyPlusPlus** - Enhanced elytra flight controls with auto firework
+- **YawLock** - Locks player yaw for precise movement
+</details>
+
+<details>
+<summary><b>Utilities & Other</b> (6 modules)</summary>
+
+- **GrimAirPlace** - Grim-compatible air placement
+- **AutoEXPPlus** - Experience mending automation
+- **AutoPortal** - Portal creation automation
+- **UnfocusedFpsLimiter** - Limits FPS when window unfocused
+- **DiscordNotifs** - Discord webhook integration for game events
+- **DisconnectSound** - Play sound on disconnect (from Meteorist)
+</details>
+
+### ⭐ Stardust Category (26 modules)
 
 *Integrated from [Stardust](https://github.com/0xTas/stardust) by 0xTas*
 
 <details>
-<summary><b>Stardust Modules</b> (25+ modules)</summary>
+<summary><b>Automation & Crafting</b> (6 modules)</summary>
 
-**Automation & Crafting:**
 - **AutoSmith** - Smithing table upgrade automation (netherite upgrades, armor trimming)
 - **AutoDoors** - Auto door interaction (classic/spammer modes)
 - **AutoMason** - Stonecutter/masonry automation
 - **AutoDyeShulkers** - Automated shulker dyeing
 - **AutoDrawDistance** - FPS-based render distance adjustment
-- **AutoCraft** - Automated crafting recipes (from Meteor Rejects)
+- **Grinder** - Automated grinding utilities
+</details>
 
-**Combat & Movement:**
+<details>
+<summary><b>Combat & Movement</b> (4 modules)</summary>
+
 - **RocketJump** - Firework rocket jumping mechanics
 - **RocketMan** - Rocket enhancements
 - **RapidFire** - Fast projectile firing
 - **Updraft** - Updraft flying mechanics
+</details>
 
-**Tools & Utilities:**
+<details>
+<summary><b>Tools & Utilities</b> (7 modules)</summary>
+
 - **Archaeology** - Suspicious sand/gravel automation with ESP
 - **AxolotlTools** - Axolotl-related tools
-- **Grinder** - Automated grinding utilities
 - **LoreLocator** - Locates items with specific lore
 - **StashBrander** - Brand stashes with custom messages
 - **WaxAura** - Automatic waxing of copper blocks
 - **RoadTrip** - Travel utilities
 - **PagePirate** - Pirates books from other players, displays contents
-- **Stripper** - Auto log stripping
-- **Loadouts** - Equipment loadout management
+</details>
 
-**Visual & Creative:**
+<details>
+<summary><b>Creative & Signs</b> (5 modules)</summary>
+
 - **ChatSigns** - Create signs in chat
 - **SignHistorian** - Track sign history
 - **SignatureSign** - Sign signatures
-- **BookTools** - Advanced book editing tools
 - **BannerData** - Display banner information
+- **Loadouts** - Equipment loadout management
+</details>
 
-**Misc & QoL:**
+<details>
+<summary><b>Misc & QoL</b> (4 modules)</summary>
+
 - **Honker** - Custom goat horn sounds
 - **MusicTweaks** - Music system tweaks
 - **AntiToS** - Bypass restrictions
 - **AdBlocker** - Blocks advertisements
-- **DisconnectSound** - Play sound on disconnect (from Meteorist)
 </details>
 
-### 📦 Other Integrations
+### 🌍 Other Categories
 
 <details>
-<summary><b>Community Modules</b> (3 modules)</summary>
+<summary><b>Minecraft Default Category</b> (1 module)</summary>
 
-- **KillEffects** - Visual/audio effects on entity death (from INDICA)
-- **MapDuplicator** - Auto duplicates filled maps (from INDICA)
-- **RespawnPointBlocker** - Prevents setting respawn points (from INDICA)
-- **DiscordNotifs** - Discord webhook integration for game events
+- **AutoBreed** - Animal breeding automation (uses Minecraft's World category)
 </details>
 
 ### 📊 HUD Elements (6 total)
@@ -187,13 +209,14 @@ A comprehensive Meteor Client addon with **86+ modules** designed for 2b2t.org a
 - **SpeedKMH** - Current speed in km/h
 - **DimensionCoords** - Coordinates in both dimensions
 - **DubCounterHud** - Container counter for looting
-- **MobRateHud** - Mob farm performance analyzer
+- **MobInfo** - Mob farm performance analyzer
 
-### 🔧 Commands (13 total)
+### 🔧 Commands (14 total)
 
 | Command | Description |
 |---------|-------------|
 | `.center` | Center player positioning |
+| `.chesttracker` | Chest tracker commands |
 | `.coords` | Coordinate utilities |
 | `.enemy` | Enemy tracking management |
 | `.firstseen` | Check first seen on 2b2t.org |
@@ -209,13 +232,23 @@ A comprehensive Meteor Client addon with **86+ modules** designed for 2b2t.org a
 
 ## 🔧 Meteor Client Enhancements
 
-**56 custom mixins** enhance Meteor Client modules with advanced features:
+**78 custom mixins** enhance Meteor Client and Minecraft functionality:
 
-**Combat Mixins** - CrystalAura, AutoTrap, KillAura (yaw stepping, silent rotations, anti-cheat bypass), Velocity (GRIM/GRIM_V3 modes)
+**Core Mixins (61)** - Client-side and common mixins (`defaultRequire: 1`) in `bep.mixins.json`:
+- Entity handling, rendering, and hooks
+- Input, rotation, and movement fixes
+- Screen and GUI enhancements (HandledScreen, InventoryScreen, GameMenuScreen, etc.)
+- Packet mixins and accessors
+- XaeroMinimap integration
+- 2b2t-specific fixes (BundleIssue2b2tHotfix, FullContainerFixMixin)
 
-**Inventory Mixins** - AutoEat, ExpThrower (silent slot swapping via InventoryManager)
+**Meteor Enhancement Mixins (17)** - Optional mixins (`defaultRequire: 0`) in `bep-meteor.mixins.json`:
+- Combat: CrystalAura, AutoTrap, KillAura (yaw stepping, silent rotations), Velocity (GRIM/GRIM_V3)
+- Inventory: AutoEat, ExpThrower (silent slot swapping via InventoryManager)
+- Utility: AutoLog, AutoMend, Timer, NoRender, Notifier, PacketCanceller, OnlinePlayers, NoSlow, BetterTab, BetterTooltips, PeekScreen
+- Anti-cheat: ClientPlayerEntityGrimV3Mixin, PlayerUtilsMixin
 
-**Utility Mixins** - AutoLog, FreeCam, AutoMend, Timer, Nametags, NoRender, Notifier, PacketCanceller, OnlinePlayers, NoSlow, PeekScreen
+All Meteor mixins allow seamless integration without modifying base Meteor Client.
 
 ## Quick Start Guide
 

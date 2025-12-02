@@ -1,4 +1,5 @@
 package bep.hax.mixin.meteor;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import bep.hax.util.InventoryManager;
 import meteordevelopment.meteorclient.pathing.PathManagers;
 import meteordevelopment.meteorclient.settings.Setting;
@@ -38,8 +39,8 @@ public abstract class AutoEatMixin {
         InventoryManager invManager = InventoryManager.getInstance();
         int serverSlot = invManager.getServerSlot();
         if (serverSlot != slot && slot != 40) {
-            if (mc.player.getInventory().selectedSlot != slot) {
-                mc.player.getInventory().selectedSlot = slot;
+            if (((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot() != slot) {
+                ((PlayerInventoryAccessor) mc.player.getInventory()).setSelectedSlot(slot);
             }
             invManager.setSlotForced(slot);
         } else if (slot != 40) {

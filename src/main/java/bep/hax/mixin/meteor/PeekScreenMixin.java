@@ -1,9 +1,11 @@
 package bep.hax.mixin.meteor;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
+import bep.hax.modules.ItemSearchBar;
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.text.Text;
 import bep.hax.util.MsgUtil;
 import bep.hax.util.LogUtil;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.item.ItemStack;
 import net.minecraft.entity.EntityType;
 import org.spongepowered.asm.mixin.Mixin;
@@ -23,6 +25,12 @@ import net.minecraft.client.gui.screen.ingame.ShulkerBoxScreen;
 import meteordevelopment.meteorclient.utils.player.FindItemResult;
 import meteordevelopment.meteorclient.systems.modules.render.BetterTooltips;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.input.KeyInput;
+import net.minecraft.client.gui.Click;
+import net.minecraft.client.MinecraftClient;
 @Mixin(value = PeekScreen.class, remap = false)
 public abstract class PeekScreenMixin extends ShulkerBoxScreen {
     public PeekScreenMixin(ShulkerBoxScreenHandler handler, PlayerInventory inventory, Text title) {
@@ -30,45 +38,100 @@ public abstract class PeekScreenMixin extends ShulkerBoxScreen {
     }
     @Unique
     private @Nullable BetterTooltips btt = null;
-    @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true, remap = true)
-    private void hijackMouseClicked(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
-        if (mc.player == null) return;
-        if (btt == null) {
-            Modules mods = Modules.get();
-            if (mods == null) return;
-            btt = mods.get(BetterTooltips.class);
-            if (btt == null) return;
+    @Unique
+    private TextFieldWidget bephax$searchField;
+    @Unique
+    private ItemSearchBar bephax$searchModule;
+    @Inject(method = "<init>", at = @At("TAIL"))
+    private void onInit(ItemStack storageBlock, ItemStack[] contents, CallbackInfo ci) {
+        bephax$searchModule = Modules.get().get(ItemSearchBar.class);
+    }
+    @Inject(method = "init", at = @At("TAIL"), remap = true)
+    private void onInitScreen(CallbackInfo ci) {
+        if (bephax$searchModule == null || !bephax$searchModule.isActive() || !bephax$searchModule.shouldShowSearchField()) return;
+        bephax$searchField = new TextFieldWidget(
+            MinecraftClient.getInstance().textRenderer,
+            this.x + bephax$searchModule.getOffsetX(),
+            this.y + bephax$searchModule.getOffsetY(),
+            bephax$searchModule.getFieldWidth(),
+            bephax$searchModule.getFieldHeight(),
+            Text.of("Search items...")
+        );
+        bephax$searchField.setPlaceholder(Text.of("Search items..."));
+        bephax$searchField.setMaxLength(100);
+        String currentQuery = bephax$searchModule.searchQuery.get();
+        if (currentQuery != null && !currentQuery.isEmpty()) {
+            bephax$searchField.setText(currentQuery);
         }
-        if (!btt.isActive()) return;
-        var setting = btt.settings.get("peek-ghost-items");
-        if (setting == null) return;
-        try {
-            if ((boolean) setting.get() && button == GLFW.GLFW_MOUSE_BUTTON_LEFT && focusedSlot != null && !focusedSlot.getStack().isEmpty()) {
-                FindItemResult empty;
-                if (InvUtils.testInMainHand(ItemStack::isEmpty)) {
-                    empty = new FindItemResult(mc.player.getInventory().selectedSlot, mc.player.getMainHandStack().getCount());
-                } else {
-                    empty = InvUtils.find(ItemStack::isEmpty, 0, 8);
-                }
-                if (empty.found()) {
-                    ItemStack stack = focusedSlot.getStack();
-                    EquippableComponent equippableComponent = EquippableComponent.builder(EquipmentSlot.HEAD)
-                        .swappable(true)
-                        .allowedEntities(EntityType.PLAYER)
-                        .dispensable(true)
-                        .build();
-                    if (shouldSetComponent(stack))
-                        stack.set(DataComponentTypes.EQUIPPABLE, equippableComponent);
-                    mc.player.getInventory().setStack(empty.slot(), stack);
-                    cir.setReturnValue(true);
-                } else {
-                    MsgUtil.sendModuleMsg("Peeking at ghost items requires an empty hotbar slot§c..!", "better-tooltips");
-                    cir.setReturnValue(false);
+        bephax$searchField.setChangedListener(text -> {
+            if (bephax$searchModule != null) {
+                bephax$searchModule.updateSearchQuery(text);
+            }
+        });
+        bephax$searchField.setFocused(false);
+        bephax$searchField.setEditable(true);
+        bephax$searchField.setVisible(true);
+        this.addDrawableChild(bephax$searchField);
+    }
+    @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
+    private void onMouseClicked(Click click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
+        if (bephax$searchModule == null || !bephax$searchModule.isActive() || !bephax$searchModule.shouldShowSearchField()) return;
+        if (bephax$searchField == null) return;
+        double mouseX = click.x();
+        double mouseY = click.y();
+        boolean clickedOnField = mouseX >= bephax$searchField.getX() &&
+                                mouseX < bephax$searchField.getX() + bephax$searchField.getWidth() &&
+                                mouseY >= bephax$searchField.getY() &&
+                                mouseY < bephax$searchField.getY() + bephax$searchField.getHeight();
+        if (clickedOnField) {
+            bephax$searchField.setFocused(true);
+            if (bephax$searchField.mouseClicked(click, doubled)) {
+                cir.setReturnValue(true);
+                return;
+            }
+        } else {
+            bephax$searchField.setFocused(false);
+        }
+    }
+    @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
+    private void onKeyPressed(KeyInput input, CallbackInfoReturnable<Boolean> cir) {
+        if (bephax$searchModule == null || !bephax$searchModule.isActive() || !bephax$searchModule.shouldShowSearchField()) return;
+        if (bephax$searchField == null) return;
+        int keyCode = input.key();
+        if (keyCode == 258) {
+            bephax$searchField.setFocused(true);
+            cir.setReturnValue(true);
+            return;
+        }
+        if (keyCode == 256 && bephax$searchField.isFocused()) {
+            bephax$searchField.setFocused(false);
+            cir.setReturnValue(true);
+            return;
+        }
+        if (bephax$searchField.isFocused()) {
+            bephax$searchField.keyPressed(input);
+            if (keyCode != 256) {
+                cir.setReturnValue(true);
+            }
+        }
+    }
+    @Override
+    public boolean charTyped(net.minecraft.client.input.CharInput input) {
+        if (bephax$searchModule != null && bephax$searchModule.isActive() && bephax$searchModule.shouldShowSearchField()) {
+            if (bephax$searchField != null && bephax$searchField.isFocused()) {
+                if (bephax$searchField.charTyped(input)) {
+                    return true;
                 }
             }
-        } catch (Exception err) {
-            LogUtil.error(err.toString(), "PeekScreenMixin");
         }
+        return super.charTyped(input);
+    }
+    @Inject(method = "drawBackground", at = @At("TAIL"), remap = true)
+    private void onDrawBackground(DrawContext context, float delta, int mouseX, int mouseY, CallbackInfo ci) {
+        if (bephax$searchModule == null || !bephax$searchModule.isActive() || !bephax$searchModule.shouldShowSearchField()) return;
+        if (bephax$searchField == null) return;
+        bephax$searchField.setX(this.x + bephax$searchModule.getOffsetX());
+        bephax$searchField.setY(this.y + bephax$searchModule.getOffsetY());
     }
     @Unique
     private boolean shouldSetComponent(ItemStack stack) {

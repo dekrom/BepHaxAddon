@@ -114,7 +114,7 @@ public class PlacementUtils {
             for (int y = minY; y < maxY; y++) {
                 for (int z = minZ; z < maxZ; z++) {
                     BlockPos pos = new BlockPos(x, y, z);
-                    if (mc.world.getBlockState(pos).blocksMovement()) {
+                    if (!mc.world.getBlockState(pos).getCollisionShape(mc.world, pos).isEmpty()) {
                         net.minecraft.util.math.Box blockBox = new net.minecraft.util.math.Box(x, y, z, x + 1.0, y + 1.0, z + 1.0);
                         if (bb.intersects(blockBox)) {
                             return true;
@@ -151,11 +151,11 @@ public class PlacementUtils {
         for (int x = (int) Math.floor(playerBox.minX); x <= Math.floor(playerBox.maxX); x++) {
             for (int z = (int) Math.floor(playerBox.minZ); z <= Math.floor(playerBox.maxZ); z++) {
                 BlockPos feetPos = new BlockPos(x, (int) Math.floor(playerBox.minY), z);
-                if (mc.world.getBlockState(feetPos).blocksMovement()) {
+                if (!mc.world.getBlockState(feetPos).getCollisionShape(mc.world, feetPos).isEmpty()) {
                     feetBlocked = true;
                 }
                 BlockPos headPos = new BlockPos(x, (int) Math.floor(playerBox.maxY), z);
-                if (mc.world.getBlockState(headPos).blocksMovement()) {
+                if (!mc.world.getBlockState(headPos).getCollisionShape(mc.world, headPos).isEmpty()) {
                     headBlocked = true;
                 }
                 if (feetBlocked && headBlocked) {

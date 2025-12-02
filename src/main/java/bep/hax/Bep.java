@@ -30,7 +30,7 @@ public class Bep extends MeteorAddon {
         Hud.get().register(DimensionCoords.INFO);
         Hud.get().register(SpeedKMH.INFO);
         Hud.get().register(DubCounterHud.INFO);
-        Hud.get().register(MobRateHud.INFO);
+        Hud.get().register(MobInfo.INFO);
         Modules.get().add(new AutoSmith());
         Modules.get().add(new BepMine());
         Modules.get().add(new BepCrystal());
@@ -47,13 +47,13 @@ public class Bep extends MeteorAddon {
         Modules.get().add(new WheelPicker());
         Modules.get().add(new NoHurtCam());
         Modules.get().add(new ElytraSwap());
+        Modules.get().add(new HotbarTotem());
         Modules.get().add(new InvFix());
         Modules.get().add(new WebChat());
+        Modules.get().add(new bep.hax.modules.livemessage.LiveMessage());
         Modules.get().add(new Replenish());
         Modules.get().add(new GhostMode());
         Modules.get().add(new AutoBreed());
-
-        bep.hax.util.CapeManager.getInstance();
         Modules.get().add(new StashMover());
         Commands.add(new bep.hax.commands.SetInput());
         Commands.add(new bep.hax.commands.SetOutput());
@@ -69,6 +69,7 @@ public class Bep extends MeteorAddon {
         Modules.get().add(new AutoEXPPlus());
         Modules.get().add(new AutoPortal());
         Modules.get().add(new ChestIndex());
+        Modules.get().add(new bep.hax.modules.chesttracker.ChestTrackerModule());
         Modules.get().add(new GotoPosition());
         Modules.get().add(new HighlightOldLava());
         Modules.get().add(new Pitch40Util());
@@ -91,6 +92,7 @@ public class Bep extends MeteorAddon {
         Commands.add(new bep.hax.commands.Stats2b2t());
         Commands.add(new bep.hax.commands.Panorama());
         Commands.add(new bep.hax.commands.Loadout());
+        Commands.add(new bep.hax.commands.ChestTrackerCommand());
         Modules.get().add(new AdBlocker());
         Modules.get().add(new Loadouts());
         Modules.get().add(new AntiToS());
@@ -121,6 +123,7 @@ public class Bep extends MeteorAddon {
         Modules.get().add(new AutoRespond());
         packetManager = new PacketManager();
         StardustConfig.initialize();
+        LOG.info("BEPHAX LOADED.");
     }
     @Override
     public void onRegisterCategories() {

@@ -4,7 +4,7 @@ import java.nio.file.*;
 import javax.imageio.ImageIO;
 import net.minecraft.text.Text;
 import bep.hax.util.LogUtil;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.awt.image.BufferedImage;
 import bep.hax.util.StardustUtil;
 import net.minecraft.sound.SoundEvents;
@@ -44,8 +44,7 @@ public class Panorama extends Command {
     private void takeWarmedScreenshot() {
         if (currentPanoramaDir == null || instance == null) return;
         ScreenshotRecorder.saveScreenshot(
-            currentPanoramaDir.toFile(),
-            "panorama_"+screenshot+".png",
+            currentPanoramaDir.toFile().toPath().resolve("panorama_"+screenshot+".png").toFile(),
             instance.getFramebuffer(), msg -> {}
         );
         ++screenshot;
@@ -63,9 +62,9 @@ public class Panorama extends Command {
         instance = mc;
         screenshot = 0;
         preYaw = mc.player.getYaw();
-        prevYaw = mc.player.prevYaw;
+        prevYaw = mc.player.getYaw();
         prePitch = mc.player.getPitch();
-        prevPitch = mc.player.prevPitch;
+        prevPitch = mc.player.getPitch();
         currentPanoramaDir = panoramaDir;
         preWidth = mc.getWindow().getFramebufferWidth();
         preHeight = mc.getWindow().getFramebufferHeight();
@@ -186,8 +185,6 @@ public class Panorama extends Command {
                     takingPanorama = false;
                     instance.player.setYaw(preYaw);
                     instance.player.setPitch(prePitch);
-                    instance.player.prevYaw = prevYaw;
-                    instance.player.prevPitch = prevPitch;
                     instance.gameRenderer.setRenderingPanorama(false);
                     instance.gameRenderer.setBlockOutlineEnabled(true);
                     instance.getWindow().setFramebufferWidth(preWidth);

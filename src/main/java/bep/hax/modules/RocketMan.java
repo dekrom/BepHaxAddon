@@ -1,4 +1,5 @@
 package bep.hax.modules;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import bep.hax.Bep;
@@ -8,7 +9,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import bep.hax.util.MsgUtil;
 import bep.hax.util.LogUtil;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import bep.hax.util.StardustUtil;
@@ -490,10 +491,10 @@ public class RocketMan extends Module {
             InvUtils.swapBack();
         }else {
             int movedSlot = -1;
-            for (int n = 9; n < mc.player.getInventory().main.size(); n++) {
+            for (int n = 9; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size(); n++) {
                 Item item = mc.player.getInventory().getStack(n).getItem();
                 if (item == Items.FIREWORK_ROCKET) {
-                    InvUtils.move().from(n).to(mc.player.getInventory().selectedSlot);
+                    InvUtils.move().from(n).to(((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot());
                     movedSlot = n;
                     foundRocket = true;
                     break;
@@ -504,7 +505,7 @@ public class RocketMan extends Module {
                 justUsed = true;
                 mc.interactionManager.interactItem(mc.player, Hand.MAIN_HAND);
                 if (movedSlot != -1) {
-                    InvUtils.move().from(mc.player.getInventory().selectedSlot).to(movedSlot);
+                    InvUtils.move().from(((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot()).to(movedSlot);
                 }
             }
         }
@@ -543,7 +544,7 @@ public class RocketMan extends Module {
     }
     private boolean replaceElytra() {
         if (mc.player == null) return false;
-        for (int n = 0; n < mc.player.getInventory().main.size(); n++) {
+        for (int n = 0; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size(); n++) {
             ItemStack item = mc.player.getInventory().getStack(n);
             if (item.getItem() == Items.ELYTRA) {
                 int max = item.getMaxDamage();
@@ -570,7 +571,7 @@ public class RocketMan extends Module {
                     if (durabilityCheckTicks < 100) return;
                     if (percentDurability <= durabilityThreshold.get()) {
                         float vol = warnVolume.get() / 100f;
-                        mc.player.playSound(SoundEvents.ENTITY_ITEM_BREAK, vol, 1f);
+                        mc.player.playSound(SoundEvents.ENTITY_ITEM_BREAK.value(), vol, 1f);
                         MsgUtil.updateModuleMsg("Elytra durability: §c" + percentDurability + "§7%", this.name, "elytraDurabilityWarning".hashCode());
                         durabilityCheckTicks = 0;
                     }
@@ -580,7 +581,7 @@ public class RocketMan extends Module {
             if (durabilityCheckTicks < 100) return;
             if (percentDurability <= durabilityThreshold.get()) {
                 float vol = warnVolume.get() / 100f;
-                mc.player.playSound(SoundEvents.ENTITY_ITEM_BREAK, vol, 1f);
+                mc.player.playSound(SoundEvents.ENTITY_ITEM_BREAK.value(), vol, 1f);
                 MsgUtil.updateModuleMsg("Elytra durability: §c" + percentDurability + "§7%", this.name, "elytraDurabilityWarning".hashCode());
                 durabilityCheckTicks = 0;
             }
@@ -590,7 +591,7 @@ public class RocketMan extends Module {
         if (mc.player == null) return;
         if (!notifyOnLow.get() || rocketStockTicks < 100) return;
         int totalRockets = 0;
-        for (int n = 0; n < mc.player.getInventory().main.size(); n++) {
+        for (int n = 0; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size(); n++) {
             ItemStack stack = mc.player.getInventory().getStack(n);
             if (stack.getItem() == Items.FIREWORK_ROCKET) {
                 totalRockets += stack.getCount();
@@ -739,8 +740,8 @@ public class RocketMan extends Module {
         if (!isWearingElytra) {
             if (autoEquip.get()) {
                 boolean foundElytra = false;
-                for (int n = 0; n < mc.player.getInventory().main.size(); n++) {
-                    ItemStack stack = mc.player.getInventory().main.get(n);
+                for (int n = 0; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size(); n++) {
+                    ItemStack stack = ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().get(n);
                     if (stack.getItem() == Items.ELYTRA) {
                         if (autoReplace.get()) {
                             int max = stack.getMaxDamage();

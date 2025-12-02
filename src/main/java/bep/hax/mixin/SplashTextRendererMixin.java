@@ -13,8 +13,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class SplashTextRendererMixin {
     @Unique private int trackAlpha = 0;
     @Inject(method = "render", at = @At("HEAD"))
-    private void mixinRender(DrawContext context, int width, TextRenderer textRenderer, int alpha, CallbackInfo ci) {
-        this.trackAlpha = alpha;
+    private void mixinRender(DrawContext context, int width, TextRenderer textRenderer, float alpha, CallbackInfo ci) {
+        this.trackAlpha = (int)(alpha * 255.0f);
     }
     @ModifyArg(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawCenteredTextWithShadow(Lnet/minecraft/client/font/TextRenderer;Ljava/lang/String;III)V"), index = 4)
     private int modifyRenderArg(int color) {

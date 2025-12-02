@@ -202,9 +202,9 @@ public class AntiToS extends Module {
             for (PlayerListS2CPacket.Entry entry : packet.getEntries()) {
                 if (entry.profile() == null) continue;
                 GameProfile profile = entry.profile();
-                if (containsBlacklistedText(profile.getName())) {
-                    ((GameProfileAccessor) profile).setName(censorText(profile.getName()));
-                    ((PlayerListS2CPacketAccessor)(Object) entry).setProfile(profile);
+                if (containsBlacklistedText(profile.name())) {
+                    GameProfile censoredProfile = new GameProfile(profile.id(), censorText(profile.name()));
+                    ((PlayerListS2CPacketAccessor)(Object) entry).setProfile(censoredProfile);
                 }
             }
         }

@@ -12,7 +12,11 @@ public class Coordinates extends Command {
     public void build(LiteralArgumentBuilder<CommandSource> builder) {
         builder.executes(context -> {
             mc.keyboard.setClipboard("%d, %d, %d".formatted(mc.player.getBlockPos().getX(), mc.player.getBlockPos().getY(), mc.player.getBlockPos().getZ()));
-            mc.getToastManager().add(new MeteorToast(Items.NETHERITE_PICKAXE, "Coordinates", "Copied to clipboard.", 5000L));
+            mc.getToastManager().add(new MeteorToast.Builder("Coordinates")
+                .text("Copied to clipboard.")
+                .icon(Items.NETHERITE_PICKAXE)
+                .duration(5000)
+                .build());
             return SINGLE_SUCCESS;
         });
     }

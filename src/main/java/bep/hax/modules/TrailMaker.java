@@ -104,7 +104,7 @@ public class TrailMaker extends Module
             }
             float targetYaw = (float) Rotations.getYaw(centerBlockPos);
             mc.player.setYaw(Utils.smoothRotation(mc.player.getYaw(), targetYaw, rotationScaling.get()));
-            if (mc.player.getPos().squaredDistanceTo(centerBlockPos) < 16 * 16)
+            if (mc.player.getEntityPos().squaredDistanceTo(centerBlockPos) < 16 * 16)
             {
                 ChunkPos point = points.poll();
                 ModuleManager.getModule(Drawing.class).drawingCache.removeHighlight(point.x, point.z, dimension);

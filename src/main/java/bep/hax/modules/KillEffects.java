@@ -110,7 +110,7 @@ public class KillEffects extends Module {
         }
     }
     private void triggerKillEffect(Entity entity) {
-        Vec3d pos = entity.getPos();
+        Vec3d pos = entity.getEntityPos();
         switch (effectType.get()) {
             case ENTITY -> spawnEntityEffect(pos);
             case PARTICLE -> spawnParticleEffect(pos);
@@ -144,11 +144,6 @@ public class KillEffects extends Module {
                 double offsetY = random.nextDouble() * 2.0;
                 double offsetZ = (random.nextDouble() - 0.5) * 4.0;
                 if (particleType instanceof net.minecraft.particle.ParticleEffect particleEffect) {
-                    mc.world.addParticle(
-                        particleEffect,
-                        pos.x + offsetX, pos.y + offsetY, pos.z + offsetZ,
-                        0, 0, 0
-                    );
                 }
             }
         }
@@ -156,9 +151,9 @@ public class KillEffects extends Module {
         if (!selectedSounds.isEmpty()) {
             float volume = soundVolume.get() / 100.0f;
             SoundEvent sound = selectedSounds.get(0);
-            mc.world.playSound(pos.x, pos.y, pos.z,
+            mc.world.playSound(mc.player, pos.x, pos.y, pos.z,
                 sound,
-                net.minecraft.sound.SoundCategory.AMBIENT, volume, 1.0f, false);
+                net.minecraft.sound.SoundCategory.AMBIENT, volume, 1.0f);
         }
     }
     private void spawnFallbackParticles(Vec3d pos) {
@@ -167,11 +162,6 @@ public class KillEffects extends Module {
             double offsetX = (random.nextDouble() - 0.5) * 4.0;
             double offsetY = random.nextDouble() * 8.0;
             double offsetZ = (random.nextDouble() - 0.5) * 4.0;
-            mc.world.addParticle(
-                net.minecraft.particle.ParticleTypes.ELECTRIC_SPARK,
-                pos.x + offsetX, pos.y + offsetY, pos.z + offsetZ,
-                0, 0, 0
-            );
         }
     }
     private boolean isValidEntity(Entity entity) {

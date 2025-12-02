@@ -53,6 +53,15 @@ public class ChestIndex extends Module
         .sliderRange(1, 10)
         .build()
     );
+    private final Setting<Integer> renderRange = sgGeneral.add(new IntSetting.Builder()
+        .name("Render Range")
+        .description("Only render highlighted blocks within this range (prevents lag with high values).")
+        .defaultValue(64)
+        .min(1)
+        .max(256)
+        .sliderRange(1, 256)
+        .build()
+    );
     private final Setting<Integer> delay = sgGeneral.add(new IntSetting.Builder()
         .name("Delay")
         .description("Delay in ticks between chest interactions.")
@@ -97,7 +106,7 @@ public class ChestIndex extends Module
     private int tickCounter;
     public ChestIndex()
     {
-        super(Bep.STASH, "ChestIndex", "Displays a total count of blocks in your chests (buggy and will probably break for lots of chests)");
+        super(Bep.STASH, "ChestIndex", "Displays a total count of items in containers (chests, barrels, hoppers, dispensers, droppers, crafters, shulkers)");
         searched = new HashSet<BlockPos>();
         blocks = new HashMap<String, Integer>();
     }
@@ -225,7 +234,10 @@ public class ChestIndex extends Module
         if (highlightSearched.get()){
             for (BlockPos blockPos : searched)
             {
-                RenderUtils.renderTickingBlock(blockPos.toImmutable(), sideColor.get(), lineColor.get(), shapeMode.get(), 0, 8, true, false);
+                double distance = Math.sqrt(mc.player.squaredDistanceTo(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5));
+                if (distance <= renderRange.get()) {
+                    RenderUtils.renderTickingBlock(blockPos.toImmutable(), sideColor.get(), lineColor.get(), shapeMode.get(), 0, 8, true, false);
+                }
             }
         }
     }
@@ -256,6 +268,10 @@ public class ChestIndex extends Module
                 (blockState.getBlock() == Blocks.CHEST ||
                     blockState.getBlock() == Blocks.TRAPPED_CHEST ||
                     blockState.getBlock() == Blocks.BARREL ||
+                    blockState.getBlock() == Blocks.HOPPER ||
+                    blockState.getBlock() == Blocks.DISPENSER ||
+                    blockState.getBlock() == Blocks.DROPPER ||
+                    blockState.getBlock() == Blocks.CRAFTER ||
                     blockState.getBlock() instanceof ShulkerBoxBlock))
             {
                 Vec3d vec = new Vec3d(blockPos.getX(), blockPos.getY(), blockPos.getZ());

@@ -1,4 +1,5 @@
 package bep.hax.modules;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import bep.hax.Bep;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.events.world.TickEvent;
@@ -72,9 +73,16 @@ public class AutoEXPPlus extends Module {
     private void onTick(TickEvent.Pre event) {
         if (repairingI == -1) {
             if (mode.get() != Mode.Hands) {
-                for (int i = 0; i < mc.player.getInventory().armor.size(); i++) {
-                    if (ignoreElytra.get() && mc.player.getInventory().armor.get(i).getItem() == Items.ELYTRA) continue;
-                    if (needsRepair(mc.player.getInventory().armor.get(i), minThreshold.get())) {
+                net.minecraft.entity.EquipmentSlot[] armorSlots = {
+                    net.minecraft.entity.EquipmentSlot.FEET,
+                    net.minecraft.entity.EquipmentSlot.LEGS,
+                    net.minecraft.entity.EquipmentSlot.CHEST,
+                    net.minecraft.entity.EquipmentSlot.HEAD
+                };
+                for (int i = 0; i < armorSlots.length; i++) {
+                    ItemStack armorItem = mc.player.getEquippedStack(armorSlots[i]);
+                    if (ignoreElytra.get() && armorItem.getItem() == Items.ELYTRA) continue;
+                    if (needsRepair(armorItem, minThreshold.get())) {
                         repairingI = SlotUtils.ARMOR_START + i;
                         break;
                     }
@@ -83,7 +91,7 @@ public class AutoEXPPlus extends Module {
             if (mode.get() != Mode.Armor && repairingI == -1) {
                 for (Hand hand : Hand.values()) {
                     if (needsRepair(mc.player.getStackInHand(hand), minThreshold.get())) {
-                        repairingI = hand == Hand.MAIN_HAND ? mc.player.getInventory().selectedSlot : SlotUtils.OFFHAND;
+                        repairingI = hand == Hand.MAIN_HAND ? ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot() : SlotUtils.OFFHAND;
                         break;
                     }
                 }

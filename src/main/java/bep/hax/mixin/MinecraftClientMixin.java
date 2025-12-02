@@ -1,4 +1,6 @@
 package bep.hax.mixin;
+import bep.hax.accessor.InputAccessor;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import bep.hax.util.InventoryManager;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
@@ -112,7 +114,7 @@ public class MinecraftClientMixin {
         boolean offHandIsFood = !offHand.isEmpty() && offHand.get(DataComponentTypes.FOOD) != null;
         if (mainHandIsFood || offHandIsFood) {
             InventoryManager invManager = InventoryManager.getInstance();
-            int currentSlot = player.getInventory().selectedSlot;
+            int currentSlot = ((PlayerInventoryAccessor) player.getInventory()).getSelectedSlot();
             int serverSlot = invManager.getServerSlot();
             if (serverSlot != currentSlot) {
                 invManager.setSlotForced(currentSlot);

@@ -68,6 +68,6 @@ public class PositionUtil {
     public static boolean isPhasing() {
         if (mc.player == null || mc.world == null) return false;
         return getAllInBox(mc.player.getBoundingBox()).stream()
-                .anyMatch(blockPos -> mc.world.getBlockState(blockPos).blocksMovement());
+                .anyMatch(blockPos -> !mc.world.getBlockState(blockPos).getCollisionShape(mc.world, blockPos).isEmpty());
     }
 }

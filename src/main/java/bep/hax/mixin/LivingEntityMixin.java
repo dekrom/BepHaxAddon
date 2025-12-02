@@ -19,12 +19,22 @@ public abstract class LivingEntityMixin
     private int jumpingCooldown;
     @Shadow
     public abstract Brain<?> getBrain();
-    Module noJumpDelay = Modules.get().get(bep.hax.modules.NoJumpDelay.class);
-    ElytraFlyPlusPlus efly = Modules.get().get(ElytraFlyPlusPlus.class);
+    private Module noJumpDelay;
+    private ElytraFlyPlusPlus efly;
+    private Module getNoJumpDelay() {
+        if (noJumpDelay == null) noJumpDelay = Modules.get().get(bep.hax.modules.NoJumpDelay.class);
+        return noJumpDelay;
+    }
+    private ElytraFlyPlusPlus getEfly() {
+        if (efly == null) efly = Modules.get().get(ElytraFlyPlusPlus.class);
+        return efly;
+    }
     @Inject(at = @At("HEAD"), method = "Lnet/minecraft/entity/LivingEntity;tickMovement()V")
     private void tickMovement(CallbackInfo ci)
     {
-        if (mc.player != null && mc.player.getBrain().equals(this.getBrain()) && efly != null && efly.enabled() || noJumpDelay.isActive())
+        ElytraFlyPlusPlus eflyModule = getEfly();
+        Module noJumpDelayModule = getNoJumpDelay();
+        if (mc.player != null && mc.player.getBrain().equals(this.getBrain()) && eflyModule != null && eflyModule.enabled() || noJumpDelayModule != null && noJumpDelayModule.isActive())
         {
             this.jumpingCooldown = 0;
         }
@@ -32,7 +42,8 @@ public abstract class LivingEntityMixin
     @Inject(at = @At("HEAD"), method = "Lnet/minecraft/entity/LivingEntity;isGliding()Z", cancellable = true)
     private void isGliding(CallbackInfoReturnable<Boolean> cir)
     {
-        if (mc.player != null && mc.player.getBrain().equals(this.getBrain()) && efly != null && efly.enabled())
+        ElytraFlyPlusPlus eflyModule = getEfly();
+        if (mc.player != null && mc.player.getBrain().equals(this.getBrain()) && eflyModule != null && eflyModule.enabled() && !eflyModule.isFakeFlyEnabled())
         {
             cir.setReturnValue(true);
         }

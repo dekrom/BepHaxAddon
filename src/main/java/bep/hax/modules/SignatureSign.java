@@ -1,4 +1,5 @@
 package bep.hax.modules;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import java.util.*;
 import java.io.File;
 import java.util.List;
@@ -31,7 +32,6 @@ import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.utils.Utils;
 import net.minecraft.block.entity.SignBlockEntity;
 import meteordevelopment.meteorclient.MeteorClient;
-import bep.hax.mixin.accessor.ClientConnectionAccessor;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.systems.modules.Module;
@@ -48,7 +48,7 @@ public class SignatureSign extends Module {
     public static final String[] timestampTypes = {"MM/DD/YY", "MM/DD/YYYY", "DD/MM/YY", "DD/MM/YYYY",
         "YYYY/MM/DD", "YYYY/DD/MM", "Day Month Year", "Month Day Year", "Month Year", "Year", "Day Month", "Month Day",
         "Unix Epoch"};
-    public static final String[] timestampDelimiters = {"/", "//", "\\", "\\\\", "|", "||", "-", "_", "~", ".", ",", "x", "•", "✨"};
+    public static final String[] timestampDelimiters = {"/", "-", ".", " ", "_"};
     private final SettingGroup sgMode = settings.createGroup("Module Mode");
     private final SettingGroup sgSignsOpts = settings.createGroup("Sign Options");
     private final SettingGroup sgLine1Front = settings.createGroup("Front Line 1");
@@ -575,8 +575,7 @@ public class SignatureSign extends Module {
                 if (file.createNewFile()) {
                     if (mc.player != null) {
                         MsgUtil.sendModuleMsg("Created autosign.txt in your meteor-client folder§a..!", this.name);
-                        Style style = Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, meteorFolder.toFile().getAbsolutePath()));
-                        MsgUtil.sendModuleMsg("Click §2§lhere §r§7to open the folder.", style, this.name);
+                        MsgUtil.sendModuleMsg("File created at: " + meteorFolder.toFile().getAbsolutePath(), this.name);
                     }
                 }
             } catch (Exception err) {
@@ -605,8 +604,7 @@ public class SignatureSign extends Module {
                 if (file.createNewFile()) {
                     if (mc.player != null) {
                         MsgUtil.sendModuleMsg("Created storysign.txt in your meteor-client folder§a..!", this.name);
-                        Style style = Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, meteorFolder.toFile().getAbsolutePath()));
-                        MsgUtil.sendModuleMsg("Click §2§lhere §r§7to open the folder.", style, this.name);
+                        MsgUtil.sendModuleMsg("File created at: " + meteorFolder.toFile().getAbsolutePath(), this.name);
                     }
                 }
             } catch (Exception err) {
@@ -800,14 +798,14 @@ public class SignatureSign extends Module {
         BlockPos pos = sbe.getPos();
         Vec3d hitVec = Vec3d.ofCenter(pos);
         BlockHitResult hit = new BlockHitResult(hitVec, mc.player.getHorizontalFacing().getOpposite(), pos, false);
-        ItemStack current = mc.player.getInventory().getMainHandStack();
+        ItemStack current = mc.player.getInventory().getStack(((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot());
         if (current.getItem() != dye) {
-            for (int n = 0; n < mc.player.getInventory().main.size(); n++) {
+            for (int n = 0; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size(); n++) {
                 ItemStack stack = mc.player.getInventory().getStack(n);
                 if (stack.getItem() == dye) {
                     if (current.getItem() instanceof SignItem && current.getCount() > 1) dyeSlot = n;
                     if (n < 9) InvUtils.swap(n, true);
-                    else InvUtils.move().from(n).to(mc.player.getInventory().selectedSlot);
+                    else InvUtils.move().from(n).to(((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot());
                     timer = 3;
                     return;
                 }
@@ -864,8 +862,8 @@ public class SignatureSign extends Module {
             ++packetTimer;
             if (packetTimer >= packetDelay.get()) {
                 packetTimer = 0;
-                ((ClientConnectionAccessor) mc.getNetworkHandler().getConnection()).invokeSendImmediately(
-                    packetQueue.removeFirst(), null, true
+                mc.getNetworkHandler().getConnection().send(
+                    packetQueue.removeFirst(), null
                 );
             }
         } else if (!isActive()) {
@@ -876,7 +874,7 @@ public class SignatureSign extends Module {
         if (timer == -1) {
             if (dyeSlot != -1) {
                 if (dyeSlot < 9) InvUtils.swapBack();
-                else InvUtils.move().from(mc.player.getInventory().selectedSlot).to(dyeSlot);
+                else InvUtils.move().from(((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot()).to(dyeSlot);
                 dyeSlot = -1;
                 timer = 3;
             }

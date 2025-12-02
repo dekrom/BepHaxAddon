@@ -8,7 +8,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import meteordevelopment.meteorclient.settings.Setting;
 import net.minecraft.entity.vehicle.AbstractBoatEntity;
-import bep.hax.mixin.accessor.ClientConnectionAccessor;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Category;
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
@@ -28,8 +27,8 @@ public class PacketCancellerMixin extends Module {
         if (c2sPackets.get().contains(BoatPaddleStateC2SPacket.class) && event.packet instanceof BoatPaddleStateC2SPacket) {
             if (mc.player != null && mc.player.getControllingVehicle() instanceof AbstractBoatEntity boat) {
                 boat.setPaddlesMoving(false, false);
-                if (mc.getNetworkHandler() != null) ((ClientConnectionAccessor) mc.getNetworkHandler().getConnection()).invokeSendImmediately(
-                    new BoatPaddleStateC2SPacket(false, false), null, true
+                if (mc.getNetworkHandler() != null) mc.getNetworkHandler().getConnection().send(
+                    new BoatPaddleStateC2SPacket(false, false)
                 );
             }
         }

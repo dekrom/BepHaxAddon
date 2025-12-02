@@ -1,6 +1,7 @@
 package bep.hax.mixin;
-import bep.hax.util.CapeManager;
+import bep.hax.accessor.InputAccessor;
 import bep.hax.util.PushFluidsEvent;
+import bep.hax.modules.ElytraFlyPlusPlus;
 import meteordevelopment.meteorclient.MeteorClient;
 import net.minecraft.world.World;
 import net.minecraft.util.math.Vec3d;
@@ -41,6 +42,12 @@ public abstract class PlayerEntityMixin extends LivingEntity {
     private void allowRocketHover(CallbackInfo ci) {
         Modules modules = Modules.get();
         if (modules == null) return;
+        if ((Object) this == mc.player) {
+            ElytraFlyPlusPlus elytraFlyPP = modules.get(ElytraFlyPlusPlus.class);
+            if (elytraFlyPP != null && elytraFlyPP.isActive() && elytraFlyPP.shouldDoChestSwapExploit()) {
+                elytraFlyPP.doChestSwapExploit(ci);
+            }
+        }
         RocketMan rm = modules.get(RocketMan.class);
         if (!rm.isActive()) {
             while (rm.getClientInstance().options.backKey.wasPressed()) { continue; }

@@ -1,7 +1,7 @@
 package bep.hax.mixin;
 import java.util.Map;
 import net.minecraft.text.Text;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.client.sound.*;
 import org.spongepowered.asm.mixin.*;
 import bep.hax.modules.MusicTweaks;

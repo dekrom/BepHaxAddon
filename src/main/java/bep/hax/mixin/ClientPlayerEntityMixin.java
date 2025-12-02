@@ -1,4 +1,6 @@
 package bep.hax.mixin;
+import bep.hax.accessor.InputAccessor;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import bep.hax.modules.RocketMan;
 import bep.hax.util.InventoryManager;
 import bep.hax.util.PushOutOfBlocksEvent;
@@ -51,26 +53,26 @@ public abstract class ClientPlayerEntityMixin {
         ClientPlayerEntity player = (ClientPlayerEntity) (Object) this;
         NoSlow noSlow = Modules.get().get(NoSlow.class);
         if (!noSlow.isActive()) return;
-
         if (bephax$isGrimV3Enabled(noSlow)) {
             if (player.isUsingItem() && bephax$checkGrimV3Timing()) {
                 float multiplier = bephax$getGrimV3Multiplier();
-                input.movementForward *= multiplier;
-                input.movementSideways *= multiplier;
+                InputAccessor inputAccessor = (InputAccessor) input;
+                inputAccessor.setMovementForward(inputAccessor.getMovementForward() * multiplier);
+                inputAccessor.setMovementSideways(inputAccessor.getMovementSideways() * multiplier);
             }
             return;
         }
-
         if (bephax$shouldMultiplyInput(noSlow)) {
             float multiplier = bephax$getInputMultiplier();
-            input.movementForward *= multiplier;
-            input.movementSideways *= multiplier;
+            InputAccessor inputAccessor = (InputAccessor) input;
+            inputAccessor.setMovementForward(inputAccessor.getMovementForward() * multiplier);
+            inputAccessor.setMovementSideways(inputAccessor.getMovementSideways() * multiplier);
         }
-
         if (noSlow.sneaking() && isSneaking()) {
             float sneakMultiplier = 1.0f / 0.3f;
-            input.movementForward *= sneakMultiplier;
-            input.movementSideways *= sneakMultiplier;
+            InputAccessor inputAccessor = (InputAccessor) input;
+            inputAccessor.setMovementForward(inputAccessor.getMovementForward() * sneakMultiplier);
+            inputAccessor.setMovementSideways(inputAccessor.getMovementSideways() * sneakMultiplier);
         }
     }
     @Inject(method = "tickMovement", at = @At("TAIL"))
@@ -150,7 +152,7 @@ public abstract class ClientPlayerEntityMixin {
             ItemStack activeStack = player.getActiveItem();
             if (!activeStack.isEmpty() && activeStack.get(DataComponentTypes.FOOD) != null) {
                 InventoryManager invManager = InventoryManager.getInstance();
-                int currentSlot = player.getInventory().selectedSlot;
+                int currentSlot = ((PlayerInventoryAccessor) player.getInventory()).getSelectedSlot();
                 int serverSlot = invManager.getServerSlot();
                 if (serverSlot != currentSlot) {
                     invManager.setSlotForced(currentSlot);

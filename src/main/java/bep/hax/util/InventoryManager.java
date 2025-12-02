@@ -1,4 +1,6 @@
 package bep.hax.util;
+import bep.hax.accessor.InputAccessor;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import bep.hax.mixin.accessor.UpdateSelectedSlotS2CPacketAccessor;
 import meteordevelopment.meteorclient.MeteorClient;
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
@@ -27,6 +29,14 @@ public class InventoryManager {
     private final int[] transactions = new int[4];
     private int transactionIndex = 0;
     private boolean isGrim = false;
+    private int currentPriority = Priority.NORMAL;
+    public static class Priority {
+        public static final int NORMAL = 0;
+        public static final int TOTEM = 5;
+        public static final int EATING = 10;
+        public static final int SURROUND = 20;
+        public static final int PEARL_PHASE = 30;
+    }
     private InventoryManager() {
         MeteorClient.EVENT_BUS.subscribe(this);
         Arrays.fill(transactions, -1);
@@ -72,9 +82,12 @@ public class InventoryManager {
     @EventHandler
     public void onTick(TickEvent.Post event) {
         if (mc.player != null && serverSlot == -1) {
-            serverSlot = mc.player.getInventory().selectedSlot;
+            serverSlot = ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot();
         }
         swapData.removeIf(PreSwapData::isExpired);
+        if (!isEating && currentPriority > Priority.NORMAL) {
+            currentPriority = Priority.NORMAL;
+        }
     }
     @EventHandler
     public void onDisconnect(GameLeftEvent event) {
@@ -99,14 +112,16 @@ public class InventoryManager {
         return lastSetbackTime != -1 && (System.currentTimeMillis() - lastSetbackTime) >= timeMS;
     }
     public void setSlot(final int barSlot) {
-        setSlot(barSlot, false);
+        setSlot(barSlot, Priority.NORMAL);
     }
-
     public void setSlot(final int barSlot, boolean highPriority) {
+        setSlot(barSlot, highPriority ? Priority.SURROUND : Priority.NORMAL);
+    }
+    public void setSlot(final int barSlot, int priority) {
         if (mc.player == null || mc.getNetworkHandler() == null) return;
-        if (isEating && !highPriority) return;
+        if (priority < currentPriority) return;
         if (serverSlot == -1) {
-            serverSlot = mc.player.getInventory().selectedSlot;
+            serverSlot = ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot();
         }
         if (serverSlot != barSlot && PlayerInventory.isValidHotbarIndex(barSlot)) {
             setSlotForced(barSlot);
@@ -115,14 +130,19 @@ public class InventoryManager {
                 hotbarCopy[i] = mc.player.getInventory().getStack(i);
             }
             swapData.add(new PreSwapData(hotbarCopy, serverSlot, barSlot));
+            currentPriority = priority;
         }
     }
     public void setClientSlot(final int barSlot) {
+        setClientSlot(barSlot, Priority.NORMAL);
+    }
+    public void setClientSlot(final int barSlot, int priority) {
         if (mc.player == null) return;
-        if (isEating) return;
-        if (mc.player.getInventory().selectedSlot != barSlot && PlayerInventory.isValidHotbarIndex(barSlot)) {
-            mc.player.getInventory().selectedSlot = barSlot;
+        if (priority < currentPriority) return;
+        if (((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot() != barSlot && PlayerInventory.isValidHotbarIndex(barSlot)) {
+            ((PlayerInventoryAccessor) mc.player.getInventory()).setSelectedSlot( barSlot);
             setSlotForced(barSlot);
+            currentPriority = priority;
         }
     }
     public void setSlotForced(final int barSlot) {
@@ -138,7 +158,7 @@ public class InventoryManager {
     public void syncToClient() {
         if (mc.player == null) return;
         if (isDesynced()) {
-            setSlotForced(mc.player.getInventory().selectedSlot);
+            setSlotForced(((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot());
             for (PreSwapData data : swapData) {
                 data.beginClear();
             }
@@ -146,15 +166,15 @@ public class InventoryManager {
     }
     public boolean isDesynced() {
         if (mc.player == null) return false;
-        return mc.player.getInventory().selectedSlot != serverSlot;
+        return ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot() != serverSlot;
     }
     public int getServerSlot() {
         if (mc.player == null) return -1;
-        return serverSlot == -1 ? mc.player.getInventory().selectedSlot : serverSlot;
+        return serverSlot == -1 ? ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot() : serverSlot;
     }
     public int getClientSlot() {
         if (mc.player == null) return -1;
-        return mc.player.getInventory().selectedSlot;
+        return ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot();
     }
     public ItemStack getServerItem() {
         if (mc.player != null && getServerSlot() != -1) {
@@ -164,9 +184,17 @@ public class InventoryManager {
     }
     public void setEating(boolean eating) {
         this.isEating = eating;
+        if (eating) {
+            currentPriority = Priority.EATING;
+        } else {
+            currentPriority = Priority.NORMAL;
+        }
     }
     public boolean isEating() {
         return isEating;
+    }
+    public int getCurrentPriority() {
+        return currentPriority;
     }
     public static int getBestWeaponSlot() {
         float bestDamage = 0.0f;
@@ -185,7 +213,7 @@ public class InventoryManager {
         if (stack.isEmpty()) return 0.0f;
         Item item = stack.getItem();
         float baseDamage = 0.0f;
-        if (item instanceof SwordItem sword) {
+        if (item.toString().toLowerCase().contains("sword")) {
             baseDamage = 4.0f;
         } else if (item instanceof AxeItem axe) {
             baseDamage = 5.0f;
@@ -217,7 +245,7 @@ public class InventoryManager {
     public static boolean isHoldingWeapon() {
         ItemStack mainHand = mc.player.getMainHandStack();
         Item item = mainHand.getItem();
-        return item instanceof SwordItem ||
+        return item.toString().toLowerCase().contains("sword") ||
                item instanceof AxeItem ||
                item instanceof TridentItem ||
                item instanceof MaceItem;
@@ -231,13 +259,13 @@ public class InventoryManager {
     }
     public static void swapToSlot(int slot) {
         if (slot >= 0 && slot < 9) {
-            mc.player.getInventory().selectedSlot = slot;
+            ((PlayerInventoryAccessor) mc.player.getInventory()).setSelectedSlot( slot);
         }
     }
     public static double getAttackSpeed(ItemStack weapon) {
         if (weapon.isEmpty()) return 4.0;
         Item item = weapon.getItem();
-        if (item instanceof SwordItem) return 1.6;
+        if (item.toString().toLowerCase().contains("sword")) return 1.6;
         if (item instanceof AxeItem) return 0.8;
         if (item instanceof TridentItem) return 1.1;
         if (item instanceof MaceItem) return 0.6;
@@ -254,7 +282,15 @@ public class InventoryManager {
         return is32kWeapon(mainHand) || is32kWeapon(offHand);
     }
     private static boolean is32kWeapon(ItemStack stack) {
-        if (stack.isEmpty() || !(stack.getItem() instanceof MiningToolItem || stack.getItem() instanceof SwordItem)) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+        Item item = stack.getItem();
+        boolean isWeaponOrTool = item.toString().toLowerCase().contains("sword") ||
+                                  item.toString().toLowerCase().contains("pickaxe") ||
+                                  item.toString().toLowerCase().contains("axe") ||
+                                  item.toString().toLowerCase().contains("shovel");
+        if (!isWeaponOrTool) {
             return false;
         }
         return meteordevelopment.meteorclient.utils.Utils.getEnchantmentLevel(stack, Enchantments.SHARPNESS) > 1000 ||
@@ -263,8 +299,9 @@ public class InventoryManager {
     }
     public static boolean isMovingInput() {
         if (mc.player == null) return false;
-        return mc.player.input.movementForward != 0.0f ||
-               mc.player.input.movementSideways != 0.0f ||
+        InputAccessor inputAccessor = (InputAccessor) mc.player.input;
+        return inputAccessor.getMovementForward() != 0.0f ||
+               inputAccessor.getMovementSideways() != 0.0f ||
                mc.options.jumpKey.isPressed() ||
                mc.options.sneakKey.isPressed();
     }

@@ -178,7 +178,7 @@ public class OldChunkNotifier extends Module {
                 }
                 String finalMessage = message;
                 String discordID = !ping.get() || discordId.get().isBlank() ? null : discordId.get();
-                new Thread(() -> sendWebhook(webhookLink.get(), "Old Chunk Detected", finalMessage + " at " + mc.player.getPos().toString(), discordID, mc.player.getGameProfile().getName())).start();
+                new Thread(() -> sendWebhook(webhookLink.get(), "Old Chunk Detected", finalMessage + " at " + mc.player.getEntityPos().toString(), discordID, mc.player.getGameProfile().name())).start();
             }
         }
         if (notifyOffHighway.get())
@@ -196,11 +196,12 @@ public class OldChunkNotifier extends Module {
                 if (logType.get() == LogType.Both || logType.get() == LogType.Webhook)
                 {
                     String discordID = !ping.get() || discordId.get().isBlank() ? null : discordId.get();
-                    new Thread(() -> sendWebhook(webhookLink.get(), "Old Chunk Detected", "Old chunk detected off the highway at " + chunkPos.x * 16 + " " + chunkPos.z * 16, discordID, mc.player.getGameProfile().getName())).start();
+                    new Thread(() -> sendWebhook(webhookLink.get(), "Old Chunk Detected", "Old chunk detected off the highway at " + chunkPos.x * 16 + " " + chunkPos.z * 16, discordID, mc.player.getGameProfile().name())).start();
                 }
             }
         }
     }
+    @SuppressWarnings("deprecation")
     private void createMapMarker(int x, int z)
     {
         MinimapSession minimapSession = BuiltInHudModules.MINIMAP.getCurrentSession();

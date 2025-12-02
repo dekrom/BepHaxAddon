@@ -12,9 +12,9 @@ import net.minecraft.item.Items;
 import java.util.List;
 public class ItemCounterHud extends HudElement {
     public static final HudElementInfo<ItemCounterHud> INFO = new HudElementInfo<>(
-        Bep.HUD_GROUP, 
-        "item-counter", 
-        "Displays selected items and their inventory counts.", 
+        Bep.HUD_GROUP,
+        "item-counter",
+        "Displays selected items and their inventory counts.",
         ItemCounterHud::new
     );
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -150,10 +150,10 @@ public class ItemCounterHud extends HudElement {
             curY += renderer.textHeight(textShadow.get(), textScale.get()) + 2;
             ItemStack diamond = new ItemStack(Items.DIAMOND);
             renderer.item(diamond, (int) curX, (int) curY, itemScale.get().floatValue(), true);
-            renderer.text("64", curX + 16 * itemScale.get() + 2, curY + (8 * itemScale.get() - renderer.textHeight(textShadow.get(), textScale.get()) / 2), 
+            renderer.text("64", curX + 16 * itemScale.get() + 2, curY + (8 * itemScale.get() - renderer.textHeight(textShadow.get(), textScale.get()) / 2),
                          textColor.get(), textShadow.get(), textScale.get());
             setSize(
-                Math.max(renderer.textWidth(preview, textShadow.get(), textScale.get()), 
+                Math.max(renderer.textWidth(preview, textShadow.get(), textScale.get()),
                         16 * itemScale.get() + renderer.textWidth("64", textShadow.get(), textScale.get()) + 2),
                 renderer.textHeight(textShadow.get(), textScale.get()) + 2 + 16 * itemScale.get()
             );

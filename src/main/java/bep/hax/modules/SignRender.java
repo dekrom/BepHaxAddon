@@ -270,7 +270,7 @@ public class SignRender extends Module {
     private void collectSigns() {
         allSigns.clear();
         signCache.clear();
-        Vec3d playerPos = mc.player.getPos();
+        Vec3d playerPos = mc.player.getEntityPos();
         double maxDist = maxDistance.get();
         List<SignRenderData> tempSignList = new ArrayList<>();
         for (BlockEntity blockEntity : Utils.blockEntities()) {
@@ -308,7 +308,7 @@ public class SignRender extends Module {
     }
     private void updateSignPositions() {
         if (mc.player == null) return;
-        Vec3d playerPos = mc.player.getPos();
+        Vec3d playerPos = mc.player.getEntityPos();
         Iterator<SignRenderData> iterator = allSigns.iterator();
         while (iterator.hasNext()) {
             SignRenderData sign = iterator.next();
@@ -558,7 +558,7 @@ public class SignRender extends Module {
             );
             Renderer2D.COLOR.begin();
             Renderer2D.COLOR.quad(bgLeft, bgTop, bgWidth, bgHeight, bgColor);
-            Renderer2D.COLOR.render(null);
+            Renderer2D.COLOR.render();
         }
         textRenderer.begin(sign.scale, false, true);
         for (int i = 0; i < sign.lines.size(); i++) {
@@ -594,7 +594,7 @@ public class SignRender extends Module {
             );
             Renderer2D.COLOR.begin();
             Renderer2D.COLOR.quad(elementLeft, elementTop, elementWidth, elementHeight, bgColor);
-            Renderer2D.COLOR.render(null);
+            Renderer2D.COLOR.render();
         }
         textRenderer.begin(scale, false, true);
         textRenderer.render(text, elementLeft + bgPadding, elementTop + bgPadding, color);

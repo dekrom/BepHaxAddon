@@ -1,4 +1,5 @@
 package bep.hax.util;
+import bep.hax.accessor.InputAccessor;
 import meteordevelopment.meteorclient.MeteorClient;
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
@@ -85,14 +86,15 @@ public class RotationUtils {
     @EventHandler
     public void onTickPost(TickEvent.Post event) {
         if (rotation != null && mc.player != null && movementFix) {
-            float forward = mc.player.input.movementForward;
-            float sideways = mc.player.input.movementSideways;
+            InputAccessor inputAccessor = (InputAccessor) mc.player.input;
+            float forward = inputAccessor.getMovementForward();
+            float sideways = inputAccessor.getMovementSideways();
             if (forward == 0.0f && sideways == 0.0f) return;
             float delta = (mc.player.getYaw() - rotation.getYaw()) * MathHelper.RADIANS_PER_DEGREE;
             float cos = MathHelper.cos(delta);
             float sin = MathHelper.sin(delta);
-            mc.player.input.movementSideways = Math.round(sideways * cos - forward * sin);
-            mc.player.input.movementForward = Math.round(forward * cos + sideways * sin);
+            inputAccessor.setMovementSideways(Math.round(sideways * cos - forward * sin));
+            inputAccessor.setMovementForward(Math.round(forward * cos + sideways * sin));
         }
     }
     public void setRotation(RotationUtils.Rotation rotation) {
@@ -241,7 +243,7 @@ public class RotationUtils {
         return getRotationsTo(mc.player.getEyePos(), targetPos);
     }
     public static Vec3d getHitVector(Entity entity, HitVector hitVector) {
-        Vec3d feetPos = entity.getPos();
+        Vec3d feetPos = entity.getEntityPos();
         return switch (hitVector) {
             case FEET -> feetPos;
             case TORSO -> feetPos.add(0.0, entity.getHeight() / 2.0f, 0.0);

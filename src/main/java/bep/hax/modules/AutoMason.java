@@ -1,4 +1,5 @@
 package bep.hax.modules;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import java.util.List;
 import java.util.ArrayDeque;
 import bep.hax.Bep;
@@ -23,10 +24,10 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.recipe.display.SlotDisplayContexts;
 import net.minecraft.recipe.display.CuttingRecipeDisplay;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
-import bep.hax.mixin.accessor.ClientConnectionAccessor;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import net.minecraft.client.gui.screen.ingame.StonecutterScreen;
+import net.minecraft.screen.sync.ItemStackHash;
 import net.minecraft.network.packet.c2s.play.ClickSlotC2SPacket;
 import meteordevelopment.meteorclient.events.world.PlaySoundEvent;
 import meteordevelopment.meteorclient.events.game.OpenScreenEvent;
@@ -145,16 +146,16 @@ public class AutoMason extends Module {
         if (!packetQueue.isEmpty()) {
             if (batchDelay.get() <= 0) {
                 while (!packetQueue.isEmpty()) {
-                    ((ClientConnectionAccessor) mc.getNetworkHandler().getConnection()).invokeSendImmediately(
-                        packetQueue.removeFirst(), null, true
+                    mc.getNetworkHandler().getConnection().send(
+                        packetQueue.removeFirst(), null
                     );
                 }
             } else {
                 ++timer;
                 if (timer >= batchDelay.get()) {
                     timer = 0;
-                    ((ClientConnectionAccessor) mc.getNetworkHandler().getConnection()).invokeSendImmediately(
-                        packetQueue.removeFirst(), null, true
+                    mc.getNetworkHandler().getConnection().send(
+                        packetQueue.removeFirst(), null
                     );
                 }
             }
@@ -205,7 +206,7 @@ public class AutoMason extends Module {
                 ItemStack output = cutter.getSlot(StonecutterScreenHandler.OUTPUT_ID).getStack();
                 if (!hasValidItems(cutter)) finished();
                 else if (input.isEmpty() && output.isEmpty()) {
-                    for (int n = 2; n < mc.player.getInventory().main.size() + 2; n++) {
+                    for (int n = 2; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size() + 2; n++) {
                         ItemStack stack = cutter.getSlot(n).getStack();
                         if (!isValidItem(stack)) continue;
                         InvUtils.shiftClick().slotId(n);
@@ -222,8 +223,8 @@ public class AutoMason extends Module {
                         if (itemList.get().contains(recipeStack.getItem())) {
                             found = true;
                             cutter.onButtonClick(mc.player, n);
-                            ((ClientConnectionAccessor) mc.getNetworkHandler().getConnection()).invokeSendImmediately(
-                                new ButtonClickC2SPacket(cutter.syncId, n), null, true
+                            mc.getNetworkHandler().getConnection().send(
+                                new ButtonClickC2SPacket(cutter.syncId, n)
                             );
                             break;
                         }
@@ -268,9 +269,11 @@ public class AutoMason extends Module {
             changedSlots.put(shiftClickTargetSlot, new ItemStack(outputStack.getItem(), targetStack.getCount()));
             targetStack = null;
             outputStack = null;
+            it.unimi.dsi.fastutil.ints.Int2ObjectMap<ItemStackHash> hashMap = new it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<>();
+            changedSlots.forEach((slot, stack) -> hashMap.put(slot.intValue(), ItemStackHash.fromItemStack(stack, component -> 0)));
             return new ClickSlotC2SPacket(
-                handler.syncId, handler.getRevision(), 1, 0,
-                SlotActionType.QUICK_MOVE, ItemStack.EMPTY, changedSlots
+                handler.syncId, handler.getRevision(), (short) 1, (byte) 0,
+                SlotActionType.QUICK_MOVE, hashMap, ItemStackHash.fromItemStack(ItemStack.EMPTY, component -> 0)
             );
         } else if (targetStack != null) {
             CuttingRecipeDisplay.Grouping<StonecuttingRecipe> available = mc.world
@@ -286,7 +289,7 @@ public class AutoMason extends Module {
                 }
             }
         } else {
-            for (int n = 2; n < mc.player.getInventory().main.size() + 2; n++) {
+            for (int n = 2; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size() + 2; n++) {
                 if (processedSlots.contains(n)) continue;
                 ItemStack stack = handler.getSlot(n).getStack();
                 if (!isValidItem(stack)) continue;
@@ -296,9 +299,11 @@ public class AutoMason extends Module {
                 projectedEmpty.add(n);
                 changedSlots.put(0, stack);
                 changedSlots.put(n, ItemStack.EMPTY);
+                it.unimi.dsi.fastutil.ints.Int2ObjectMap<ItemStackHash> hashMap = new it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<>();
+                changedSlots.forEach((slot, stack2) -> hashMap.put(slot.intValue(), ItemStackHash.fromItemStack(stack2, component -> 0)));
                 return new ClickSlotC2SPacket(
-                    handler.syncId, handler.getRevision(), n, 0,
-                    SlotActionType.QUICK_MOVE, ItemStack.EMPTY, changedSlots
+                    handler.syncId, handler.getRevision(), (short) n, (byte) 0,
+                    SlotActionType.QUICK_MOVE, hashMap, ItemStackHash.fromItemStack(ItemStack.EMPTY, component -> 0)
                 );
             }
         }
@@ -306,7 +311,7 @@ public class AutoMason extends Module {
     }
     private int predictEmptySlot(StonecutterScreenHandler handler) {
         if (mc.player == null) return -1;
-        for (int n = mc.player.getInventory().main.size() + 1; n >= 2; n--) {
+        for (int n = ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size() + 1; n >= 2; n--) {
             if (processedSlots.contains(n) && !projectedEmpty.contains(n)) continue;
             if (projectedEmpty.contains(n)) {
                 projectedEmpty.rem(n);
@@ -320,7 +325,7 @@ public class AutoMason extends Module {
     }
     private boolean hasValidItems(StonecutterScreenHandler handler) {
         if (mc.player == null) return false;
-        for (int n = 0; n < mc.player.getInventory().main.size() + 2; n++) {
+        for (int n = 0; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size() + 2; n++) {
             if (n == 1) continue;
             if (isValidItem(handler.getSlot(n).getStack())) return true;
         }

@@ -1,5 +1,5 @@
 package bep.hax.modules.searcharea.modes;
-
+import bep.hax.accessor.InputAccessor;
 import bep.hax.modules.searcharea.SearchAreaMode;
 import bep.hax.modules.searcharea.SearchAreaModes;
 import meteordevelopment.meteorclient.systems.modules.Module;
@@ -10,23 +10,17 @@ import meteordevelopment.meteorclient.utils.player.Rotations;
 import net.minecraft.network.packet.s2c.common.DisconnectS2CPacket;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
-
 import java.io.*;
-
 import static meteordevelopment.meteorclient.utils.player.ChatUtils.info;
 import static bep.hax.util.Utils.*;
-
 public class Rectangle extends SearchAreaMode
 {
-
     private PathingDataRectangle pd;
     private boolean goingToStart = true;
     private long startTime;
-
     public Rectangle() {
         super(SearchAreaModes.Rectangle);
     }
-
     @Override
     public void onActivate()
     {
@@ -34,7 +28,6 @@ public class Rectangle extends SearchAreaMode
         File file = getJsonFile(super.toString());
         if (file == null || !file.exists())
         {
-
             pd = new PathingDataRectangle(searchArea.startPos.get(), searchArea.targetPos.get(), searchArea.startPos.get(), 90, true, (int)mc.player.getZ());
         }
         else
@@ -44,18 +37,15 @@ public class Rectangle extends SearchAreaMode
                 pd = GSON.fromJson(reader, PathingDataRectangle.class);
                 reader.close();
             } catch (Exception ignored) {
-
             }
         }
     }
-
     @Override
     public void onDeactivate()
     {
         super.onDeactivate();
         super.saveToJson(goingToStart, pd);
     }
-
     private void printRectangleEstimate()
     {
         Class<? extends Module> boatFly = BoatFly.class;
@@ -70,17 +60,14 @@ public class Rectangle extends SearchAreaMode
         long seconds = totalSeconds % 60;
         info("Completion will take an estimated %02d hours %02d minutes %02d seconds with boatfly at a speed of %.2f and a gap of %d chunks between paths.", hours, minutes, seconds, speedBPS, searchArea.rowGap.get());
     }
-
     @Override
     public void onTick()
     {
-
         if (System.nanoTime() - startTime > 6e11)
         {
             startTime = System.nanoTime();
             super.saveToJson(goingToStart, pd);
         }
-
         if (goingToStart)
         {
             if (Math.sqrt(mc.player.getBlockPos().getSquaredDistance(pd.currPos.getX(), mc.player.getY(), pd.currPos.getZ())) < 5)
@@ -96,13 +83,11 @@ public class Rectangle extends SearchAreaMode
             }
             return;
         }
-
         setPressed(mc.options.forwardKey, true);
         mc.player.setYaw(pd.yawDirection);
-        if (Math.sqrt(mc.player.getBlockPos().getSquaredDistance(pd.targetPos.getX(), mc.player.getY(), pd.targetPos.getZ())) < 20) 
+        if (Math.sqrt(mc.player.getBlockPos().getSquaredDistance(pd.targetPos.getX(), mc.player.getY(), pd.targetPos.getZ())) < 20)
         {
             setPressed(mc.options.forwardKey, false);
-
             searchArea.toggle();
             if (searchArea.disconnectOnCompletion.get())
             {
@@ -112,13 +97,13 @@ public class Rectangle extends SearchAreaMode
             }
         }
         else if (pd.mainPath && ((pd.yawDirection == -90.0f && mc.player.getX() >= (Math.max(pd.initialPos.getX(), pd.targetPos.getX())))) ||
-            (pd.yawDirection == 90.0f && mc.player.getX() <= (Math.min(pd.initialPos.getX(), pd.targetPos.getX())))) 
+            (pd.yawDirection == 90.0f && mc.player.getX() <= (Math.min(pd.initialPos.getX(), pd.targetPos.getX()))))
         {
             pd.yawDirection = (mc.player.getZ() < pd.targetPos.getZ()) ? 0.0f : 180.0f;
             pd.mainPath = false;
             mc.player.setVelocity(0, 0, 0);
         }
-        else if (!pd.mainPath && Math.abs(mc.player.getZ() - pd.lastCompleteRowZ) >= (16 * searchArea.rowGap.get())) 
+        else if (!pd.mainPath && Math.abs(mc.player.getZ() - pd.lastCompleteRowZ) >= (16 * searchArea.rowGap.get()))
         {
             pd.lastCompleteRowZ = (int)mc.player.getZ();
             pd.yawDirection = (pd.initialPos.getX() > mc.player.getX() ? -90.0f : 90.0f);
@@ -126,12 +111,10 @@ public class Rectangle extends SearchAreaMode
             mc.player.setVelocity(0, 0, 0);
         }
     }
-
     public static class PathingDataRectangle extends PathingData
     {
         public BlockPos targetPos;
         public int lastCompleteRowZ;
-
         public PathingDataRectangle(BlockPos initialPos, BlockPos targetPos, BlockPos currPos, float yawDirection, boolean mainPath, int lastCompleteRowZ)
         {
             this.initialPos = initialPos;

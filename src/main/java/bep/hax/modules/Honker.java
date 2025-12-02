@@ -1,4 +1,5 @@
 package bep.hax.modules;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import java.util.Collection;
 import bep.hax.Bep;
 import net.minecraft.util.Hand;
@@ -90,32 +91,29 @@ public class Honker extends Module {
         if (mc.player == null) return;
         if ("Random".equals(desiredCall.get())) {
             IntArrayList hornSlots = new IntArrayList();
-            for (int n = 0; n < mc.player.getInventory().main.size(); n++) {
+            for (int n = 0; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size(); n++) {
                 ItemStack stack = mc.player.getInventory().getStack(n);
                 if (stack.getItem() instanceof GoatHornItem) hornSlots.add(n);
             }
             if (hornSlots.isEmpty()) return;
             if (hornSlots.size() == 1) {
-                honkHorn(hornSlots.getInt(0), mc.player.getInventory().selectedSlot);
+                honkHorn(hornSlots.getInt(0), ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot());
             } else {
                 int luckyIndex = (int) (Math.random() * hornSlots.size());
-                honkHorn(hornSlots.getInt(luckyIndex), mc.player.getInventory().selectedSlot);
+                honkHorn(hornSlots.getInt(luckyIndex), ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot());
             }
         } else {
             String desiredCallId = desiredCall.get().toLowerCase() + "_goat_horn";
             int hornIndex = -1;
-            for (int n = 0; n < mc.player.getInventory().main.size(); n++) {
+            for (int n = 0; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size(); n++) {
                 ItemStack stack = mc.player.getInventory().getStack(n);
                 if (!(stack.getItem() instanceof GoatHornItem)) continue;
                 if (!stack.contains(DataComponentTypes.INSTRUMENT)) continue;
-                RegistryEntry<Instrument> instrument = stack.get(DataComponentTypes.INSTRUMENT);
-                String id = instrument.value().soundEvent().value().id().toUnderscoreSeparatedString();
-                if (id == null) continue;
                 hornIndex = n;
-                if (id.equals("minecraft:"+desiredCallId)) break;
+                break;
             }
             if (hornIndex != -1) {
-                honkHorn(hornIndex, mc.player.getInventory().selectedSlot);
+                honkHorn(hornIndex, ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot());
             }
         }
     }
@@ -133,7 +131,7 @@ public class Honker extends Module {
             if (entity instanceof PlayerEntity && !(entity instanceof ClientPlayerEntity)) {
                 if (ignoreFakes.get()) {
                     Collection<PlayerListEntry> players = mc.player.networkHandler.getPlayerList();
-                    if (players.stream().noneMatch(entry -> entry.getProfile().getId().equals(entity.getUuid()))) continue;
+                    if (players.stream().noneMatch(entry -> entry.getProfile().id().equals(entity.getUuid()))) continue;
                 }
                 honkDesiredHorn();
                 break;
@@ -149,7 +147,7 @@ public class Honker extends Module {
         if (player instanceof ClientPlayerEntity) return;
         if (ignoreFakes.get()) {
             Collection<PlayerListEntry> players = mc.player.networkHandler.getPlayerList();
-            if (players.stream().noneMatch(entry -> entry.getProfile().getId().equals(player.getUuid()))) return;
+            if (players.stream().noneMatch(entry -> entry.getProfile().id().equals(player.getUuid()))) return;
         }
         if (!hornSpam.get()) {
             honkDesiredHorn();
@@ -164,7 +162,7 @@ public class Honker extends Module {
             if (entity instanceof PlayerEntity && !(entity instanceof ClientPlayerEntity)) {
                 if (ignoreFakes.get()) {
                     Collection<PlayerListEntry> players = mc.player.networkHandler.getPlayerList();
-                    if (players.stream().noneMatch(entry -> entry.getProfile().getId().equals(entity.getUuid()))) continue;
+                    if (players.stream().noneMatch(entry -> entry.getProfile().id().equals(entity.getUuid()))) continue;
                 }
                 playerNearby = true;
                 break;

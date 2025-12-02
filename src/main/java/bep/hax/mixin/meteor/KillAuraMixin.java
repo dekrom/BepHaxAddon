@@ -1,4 +1,5 @@
 package bep.hax.mixin.meteor;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import bep.hax.util.InventoryManager;
 import bep.hax.util.RenderUtils.RenderMode;
 import bep.hax.util.RotationUtils;
@@ -216,12 +217,12 @@ public abstract class KillAuraMixin extends Module {
             switch (bephax$swapMode.get()) {
                 case Normal -> {
                     if (!bephax$isHoldingWeapon() && bephax$autoSwapTimerPassed()) {
-                        mc.player.getInventory().selectedSlot = slot;
+                        ((PlayerInventoryAccessor) mc.player.getInventory()).setSelectedSlot(slot);
                     }
                 }
                 case Silent -> {
-                    int currentSlot = mc.player.getInventory().selectedSlot;
-                    if (currentSlot != slot) {
+                    int currentServerSlot = bephax$inventoryManager.getServerSlot();
+                    if (currentServerSlot != slot) {
                         bephax$inventoryManager.setSlot(slot);
                         bephax$silentSwapped = true;
                     }
@@ -325,7 +326,7 @@ public abstract class KillAuraMixin extends Module {
     }
     @Unique
     private Vec3d bephax$getAttackRotateVec(Entity entity) {
-        Vec3d feetPos = entity.getPos();
+        Vec3d feetPos = entity.getEntityPos();
         return switch (bephax$hitVector.get()) {
             case FEET -> feetPos;
             case TORSO -> feetPos.add(0.0, entity.getHeight() / 2.0f, 0.0);
@@ -355,7 +356,8 @@ public abstract class KillAuraMixin extends Module {
     @Unique
     private boolean bephax$isHoldingWeapon() {
         ItemStack stack = mc.player.getMainHandStack();
-        return stack.getItem() instanceof SwordItem ||
+        String itemName = stack.getItem().toString().toLowerCase();
+        return itemName.contains("sword") ||
             stack.getItem() instanceof AxeItem ||
             stack.getItem() instanceof TridentItem ||
             stack.getItem() instanceof MaceItem;
@@ -396,7 +398,7 @@ public abstract class KillAuraMixin extends Module {
             return;
         }
         int weaponSlot = bephax$getBestWeaponSlot();
-        int slotToUse = weaponSlot == -1 ? mc.player.getInventory().selectedSlot : weaponSlot;
+        int slotToUse = weaponSlot == -1 ? ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot() : weaponSlot;
         ItemStack weapon = mc.player.getInventory().getStack(slotToUse);
         MutableDouble attackSpeedAttr = new MutableDouble(
             mc.player.getAttributeBaseValue(EntityAttributes.ATTACK_SPEED));
@@ -450,9 +452,9 @@ public abstract class KillAuraMixin extends Module {
         Entity target = targets.get(0);
         if (target == null || !target.isAlive()) return;
         if (!(bephax$isHoldingWeapon() || bephax$swapMode.get() == SwapMode.Silent)) return;
-        double x = MathHelper.lerp(event.tickDelta, target.prevX, target.getX());
-        double y = MathHelper.lerp(event.tickDelta, target.prevY, target.getY());
-        double z = MathHelper.lerp(event.tickDelta, target.prevZ, target.getZ());
+        double x = MathHelper.lerp(event.tickDelta, target.lastX, target.getX());
+        double y = MathHelper.lerp(event.tickDelta, target.lastY, target.getY());
+        double z = MathHelper.lerp(event.tickDelta, target.lastZ, target.getZ());
         Box box = target.getBoundingBox().offset(-target.getX(), -target.getY(), -target.getZ()).offset(x, y, z);
         Color sideColor;
         Color lineColor;

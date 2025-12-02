@@ -4,7 +4,7 @@ import java.net.http.*;
 import java.time.Duration;
 import net.minecraft.text.Text;
 import bep.hax.util.LogUtil;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.net.URISyntaxException;
 import bep.hax.util.StardustUtil;
 import net.minecraft.client.MinecraftClient;

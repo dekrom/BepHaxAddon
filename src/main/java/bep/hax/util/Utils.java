@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.net.ssl.HttpsURLConnection;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.UnknownServiceException;
 public class Utils
@@ -149,7 +150,7 @@ public class Utils
     }
     private static void sendRequest(String webhookURL, String json) {
         try {
-            URL url = new URL(webhookURL);
+            URL url = URI.create(webhookURL).toURL();
             HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
             con.addRequestProperty("Content-Type", "application/json");
             con.addRequestProperty("User-Agent", "Mozilla");

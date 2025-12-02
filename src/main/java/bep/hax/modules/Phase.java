@@ -1,4 +1,5 @@
 package bep.hax.modules;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import bep.hax.Bep;
 import meteordevelopment.meteorclient.events.entity.player.PlayerMoveEvent;
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
@@ -154,8 +155,9 @@ public class Phase extends Module {
     @EventHandler
     private void onPacketReceive(PacketEvent.Receive event) {
         if (event.packet instanceof EntityVelocityUpdateS2CPacket packet) {
-            if (packet.getEntityId() == mc.player.getId() && isActive()) {
-                Vec3d velocity = new Vec3d(packet.getVelocityX() / 8000.0, packet.getVelocityY() / 8000.0, packet.getVelocityZ() / 8000.0);
+            bep.hax.mixin.accessor.EntityVelocityUpdateS2CPacketAccessor accessor = (bep.hax.mixin.accessor.EntityVelocityUpdateS2CPacketAccessor) packet;
+            if (accessor.getEntityId() == mc.player.getId() && isActive()) {
+                Vec3d velocity = accessor.getVelocity();
                 if (velocity.lengthSquared() < 0.1) {
                     event.cancel();
                 }
@@ -213,14 +215,14 @@ public class Phase extends Module {
         RotationUtils rotationManager = RotationUtils.getInstance();
         int targetSlot;
         if (swapAlternative.get()) {
-            targetSlot = mc.player.getInventory().selectedSlot;
+            targetSlot = ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot();
             performInventorySwapPVP(pearlSlot);
         } else if (pearlSlot < 9) {
             targetSlot = pearlSlot;
         } else {
             return;
         }
-        inventoryManager.setSlot(targetSlot);
+        inventoryManager.setSlot(targetSlot, InventoryManager.Priority.PEARL_PHASE);
         rotationManager.setRotationSilent(yaw, pitch.get());
         mc.getNetworkHandler().sendPacket(new PlayerInteractItemC2SPacket(Hand.MAIN_HAND, 0, yaw, pitch.get()));
         if (swing.get()) {
@@ -281,7 +283,7 @@ public class Phase extends Module {
     }
     private void performInventorySwapPVP(int pearlSlot) {
         mc.interactionManager.clickSlot(0, pearlSlot < 9 ? pearlSlot + 36 : pearlSlot, 0, SlotActionType.PICKUP, mc.player);
-        mc.interactionManager.clickSlot(0, mc.player.getInventory().selectedSlot + 36, 0, SlotActionType.PICKUP, mc.player);
+        mc.interactionManager.clickSlot(0, ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot() + 36, 0, SlotActionType.PICKUP, mc.player);
         mc.interactionManager.clickSlot(0, pearlSlot < 9 ? pearlSlot + 36 : pearlSlot, 0, SlotActionType.PICKUP, mc.player);
     }
     private void performAutoClip() {

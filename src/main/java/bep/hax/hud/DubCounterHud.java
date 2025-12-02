@@ -17,9 +17,9 @@ import java.util.Map;
 import java.util.TreeMap;
 public class DubCounterHud extends HudElement {
     public static final HudElementInfo<DubCounterHud> INFO = new HudElementInfo<>(
-        Bep.HUD_GROUP, 
-        "DubCounter", 
-        "Displays count of all containers in render distance for 2b2t looting.", 
+        Bep.HUD_GROUP,
+        "DubCounter",
+        "Displays count of all containers in render distance for 2b2t looting.",
         DubCounterHud::new
     );
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -466,8 +466,8 @@ public class DubCounterHud extends HudElement {
                         counts.dispenserCount++;
                     }
                     if (countFurnaces.get()) {
-                        if (blockEntity instanceof FurnaceBlockEntity || 
-                            blockEntity instanceof BlastFurnaceBlockEntity || 
+                        if (blockEntity instanceof FurnaceBlockEntity ||
+                            blockEntity instanceof BlastFurnaceBlockEntity ||
                             blockEntity instanceof SmokerBlockEntity) {
                             counts.furnaceCount++;
                         }

@@ -307,7 +307,7 @@ public class WebChat extends Module {
             String message = commandQueue.poll();
             if (message != null && mc.player != null && mc.player.networkHandler != null) {
                 if (message.startsWith("/")) {
-                    mc.player.networkHandler.sendCommand(message.substring(1));
+                    mc.player.networkHandler.sendChatCommand(message.substring(1));
                 } else {
                     mc.player.networkHandler.sendChatMessage(message);
                 }
@@ -365,8 +365,8 @@ public class WebChat extends Module {
     }
     private boolean shouldShowMessage(String plainText, Text msg) {
         if (plainText == null || plainText.isEmpty()) return false;
-        boolean isPlayerChat = plainText.matches("^<[^>]+>.*") || 
-                               plainText.contains(" whispers") || 
+        boolean isPlayerChat = plainText.matches("^<[^>]+>.*") ||
+                               plainText.contains(" whispers") ||
                                plainText.contains("-> me");
         if (isPlayerChat && !showPlayerMessages.get()) return false;
         if (!isPlayerChat && !showSystemMessages.get()) return false;

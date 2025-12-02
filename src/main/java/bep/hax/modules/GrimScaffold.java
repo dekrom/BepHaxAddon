@@ -1,4 +1,5 @@
 package bep.hax.modules;
+import bep.hax.accessor.InputAccessor;
 import bep.hax.Bep;
 import bep.hax.util.RotationUtils;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
@@ -210,7 +211,7 @@ public class GrimScaffold extends Module {
     }
     private List<BlockPos> getPlacementPositions() {
         List<BlockPos> positions = new ArrayList<>();
-        Vec3d playerPos = mc.player.getPos();
+        Vec3d playerPos = mc.player.getEntityPos();
         Vec3d velocity = mc.player.getVelocity();
         Vec3d predictedPos = playerPos;
         if (velocityPredict.get() && Math.abs(velocity.y) > 0.1) {

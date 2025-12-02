@@ -1,5 +1,5 @@
 package bep.hax.mixin.accessor;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import net.minecraft.client.sound.MusicTracker;
 import net.minecraft.client.sound.SoundInstance;

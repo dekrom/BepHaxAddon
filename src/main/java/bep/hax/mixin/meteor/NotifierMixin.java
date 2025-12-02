@@ -125,7 +125,7 @@ public abstract class NotifierMixin extends Module {
         ci.cancel();
         for (PlayerListS2CPacket.Entry entry : packet.getPlayerAdditionEntries()) {
             if (entry.profile() == null) continue;
-            String name = entry.profile().getName();
+            String name = entry.profile().name();
             String format = notificationFormatting == null ? "§o" : notificationFormatting.get().label;
             int luckyInt = ThreadLocalRandom.current().nextInt(3);
             if (luckyInt == 0) {
@@ -144,7 +144,7 @@ public abstract class NotifierMixin extends Module {
         for (UUID id : packet.profileIds()) {
             PlayerListEntry player = mc.getNetworkHandler().getPlayerListEntry(id);
             if (player == null) continue;
-            String name = player.getProfile().getName();
+            String name = player.getProfile().name();
             String format = notificationFormatting == null ? "§o" : notificationFormatting.get().label;
             int luckyInt = ThreadLocalRandom.current().nextInt(3);
             if (luckyInt == 0) {

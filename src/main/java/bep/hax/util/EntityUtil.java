@@ -7,7 +7,6 @@ import net.minecraft.entity.passive.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.*;
 import net.minecraft.util.math.BlockPos;
-
 public class EntityUtil {
     public static boolean isMonster(Entity entity) {
         return entity instanceof HostileEntity ||
@@ -57,7 +56,7 @@ public class EntityUtil {
             return ironGolem.isAttacking();
         }
         if (entity instanceof SpiderEntity || entity instanceof CaveSpiderEntity) {
-            return entity.getWorld().getAmbientDarkness() >= 0.5f;
+            return entity.getEntityWorld().getAmbientDarkness() >= 0.5f;
         }
         return false;
     }
@@ -85,7 +84,7 @@ public class EntityUtil {
     }
     public static String getEntityName(Entity entity) {
         if (entity instanceof PlayerEntity player) {
-            return player.getGameProfile().getName();
+            return player.getGameProfile().name();
         }
         return EntityType.getId(entity.getType()).getPath();
     }

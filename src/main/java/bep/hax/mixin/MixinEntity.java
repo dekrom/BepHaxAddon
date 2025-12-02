@@ -26,7 +26,7 @@ public abstract class MixinEntity {
     @Shadow
     public abstract Text getName();
     @Shadow
-    public abstract World getWorld();
+    public abstract World getEntityWorld();
     @Shadow
     public abstract ActionResult interact(PlayerEntity player, Hand hand);
     @Shadow

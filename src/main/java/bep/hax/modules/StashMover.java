@@ -1,4 +1,6 @@
 package bep.hax.modules;
+import bep.hax.accessor.InputAccessor;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import bep.hax.Bep;
 import baritone.api.BaritoneAPI;
 import baritone.api.pathing.goals.GoalBlock;
@@ -503,8 +505,8 @@ public class StashMover extends Module {
         mc.options.rightKey.setPressed(false);
         mc.options.sprintKey.setPressed(false);
         if (mc.player != null && mc.player.input != null) {
-            mc.player.input.movementForward = 0.0f;
-            mc.player.input.movementSideways = 0.0f;
+            ((InputAccessor) mc.player.input).setMovementForward(0.0f);
+            ((InputAccessor) mc.player.input).setMovementSideways(0.0f);
         }
         currentState = ProcessState.IDLE;
         info("StashMover deactivated");
@@ -864,7 +866,7 @@ public class StashMover extends Module {
     private void findNextInputContainer() {
         currentContainer = inputContainers.stream()
             .filter(c -> !c.isEmpty)
-            .min(Comparator.comparingDouble(c -> mc.player.getPos().distanceTo(Vec3d.ofCenter(c.pos))))
+            .min(Comparator.comparingDouble(c -> mc.player.getEntityPos().distanceTo(Vec3d.ofCenter(c.pos))))
             .orElse(null);
         if (currentContainer == null) {
             if (isInventoryFull() || (fillEnderChest.get() && hasItemsInEnderChest())) {
@@ -875,7 +877,7 @@ public class StashMover extends Module {
                 detectContainersInArea(inputAreaPos1, inputAreaPos2, true);
                 currentContainer = inputContainers.stream()
                     .filter(c -> !c.isEmpty)
-                    .min(Comparator.comparingDouble(c -> mc.player.getPos().distanceTo(Vec3d.ofCenter(c.pos))))
+                    .min(Comparator.comparingDouble(c -> mc.player.getEntityPos().distanceTo(Vec3d.ofCenter(c.pos))))
                     .orElse(null);
                 if (currentContainer != null) {
                     info("Found container after rescan");
@@ -985,7 +987,7 @@ public class StashMover extends Module {
             return;
         }
         Vec3d eyePos = mc.player.getEyePos();
-        Vec3d playerPos = mc.player.getPos();
+        Vec3d playerPos = mc.player.getEntityPos();
         double distance = eyePos.distanceTo(Vec3d.ofCenter(currentContainer.pos));
         if (lastPlayerPos != null) {
             double movementDelta = playerPos.distanceTo(lastPlayerPos);
@@ -1039,7 +1041,7 @@ public class StashMover extends Module {
             return;
         }
         Vec3d eyePos = mc.player.getEyePos();
-        Vec3d playerPos = mc.player.getPos();
+        Vec3d playerPos = mc.player.getEntityPos();
         double distance = eyePos.distanceTo(Vec3d.ofCenter(currentContainer.pos));
         double horizontalDistance = Math.sqrt(
             Math.pow(currentContainer.pos.getX() + 0.5 - playerPos.x, 2) +
@@ -1152,7 +1154,7 @@ public class StashMover extends Module {
     }
     private void performInteractionWithMovement(Vec3d containerCenter) {
         Vec3d eyePos = mc.player.getEyePos();
-        Vec3d currentPos = mc.player.getPos();
+        Vec3d currentPos = mc.player.getEntityPos();
         mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.Full(
             currentPos.x, currentPos.y, currentPos.z,
             mc.player.getYaw(), mc.player.getPitch(),
@@ -1197,7 +1199,7 @@ public class StashMover extends Module {
     }
     private void performAggressiveInteraction(Vec3d containerCenter) {
         Vec3d eyePos = mc.player.getEyePos();
-        Vec3d pos = mc.player.getPos();
+        Vec3d pos = mc.player.getEntityPos();
         mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.Full(
             pos.x, pos.y, pos.z,
             mc.player.getYaw(), mc.player.getPitch(),
@@ -1250,7 +1252,7 @@ public class StashMover extends Module {
             }
             return;
         }
-        double distance = mc.player.getPos().distanceTo(Vec3d.ofCenter(currentContainer.pos));
+        double distance = mc.player.getEntityPos().distanceTo(Vec3d.ofCenter(currentContainer.pos));
         if (distance > containerReach.get()) {
             if (retryCount < 3) {
                 info("Too far from container (" + String.format("%.1f", distance) + "m), moving closer...");
@@ -1439,7 +1441,7 @@ public class StashMover extends Module {
                     currentState = ProcessState.MOVING_FORWARD_RETRY;
                 } else if (containerOpenFailures >= 3 && distance > 2.5) {
                     info("Trying side approach after " + containerOpenFailures + " failures");
-                    Vec3d playerPos = mc.player.getPos();
+                    Vec3d playerPos = mc.player.getEntityPos();
                     Vec3d toContainer = Vec3d.of(currentContainer.pos).add(0.5, 0, 0.5).subtract(playerPos);
                     mc.options.leftKey.setPressed(true);
                     mc.options.forwardKey.setPressed(true);
@@ -1477,7 +1479,7 @@ public class StashMover extends Module {
         }
         Vec3d containerCenter = Vec3d.ofCenter(currentContainer.pos);
         Vec3d eyePos = mc.player.getEyePos();
-        Vec3d playerPos = mc.player.getPos();
+        Vec3d playerPos = mc.player.getEntityPos();
         double distance = eyePos.distanceTo(containerCenter);
         Vec3d toContainer = Vec3d.of(currentContainer.pos).add(0.5, 0, 0.5).subtract(playerPos);
         double horizontalDistance = Math.sqrt(toContainer.x * toContainer.x + toContainer.z * toContainer.z);
@@ -1580,7 +1582,7 @@ public class StashMover extends Module {
         }
     }
     private boolean isPathBlocked(Vec3d toContainer) {
-        Vec3d checkPos = mc.player.getPos().add(toContainer.normalize().multiply(1.0));
+        Vec3d checkPos = mc.player.getEntityPos().add(toContainer.normalize().multiply(1.0));
         BlockPos blockPos = BlockPos.ofFloored(checkPos);
         BlockPos blockPosAbove = blockPos.up();
         BlockState state = mc.world.getBlockState(blockPos);
@@ -1589,7 +1591,7 @@ public class StashMover extends Module {
             !stateAbove.isAir() && stateAbove.isSolidBlock(mc.world, blockPosAbove);
     }
     private boolean shouldJump() {
-        Vec3d feetPos = mc.player.getPos();
+        Vec3d feetPos = mc.player.getEntityPos();
         Vec3d forwardPos = feetPos.add(mc.player.getRotationVector().multiply(1.0));
         BlockPos feetBlock = BlockPos.ofFloored(forwardPos);
         BlockPos headBlock = feetBlock.up();
@@ -1600,8 +1602,8 @@ public class StashMover extends Module {
         return !feetState.isAir() && headState.isAir() && aboveState.isAir();
     }
     private boolean canStrafeAround() {
-        Vec3d leftCheck = mc.player.getPos().add(mc.player.getRotationVector().rotateY((float)Math.toRadians(90)));
-        Vec3d rightCheck = mc.player.getPos().add(mc.player.getRotationVector().rotateY((float)Math.toRadians(-90)));
+        Vec3d leftCheck = mc.player.getEntityPos().add(mc.player.getRotationVector().rotateY((float)Math.toRadians(90)));
+        Vec3d rightCheck = mc.player.getEntityPos().add(mc.player.getRotationVector().rotateY((float)Math.toRadians(-90)));
         BlockPos leftBlock = BlockPos.ofFloored(leftCheck);
         BlockPos rightBlock = BlockPos.ofFloored(rightCheck);
         return mc.world.getBlockState(leftBlock).isAir() || mc.world.getBlockState(rightBlock).isAir();
@@ -1609,8 +1611,8 @@ public class StashMover extends Module {
     private void handleStrafeMovement(Vec3d toContainer) {
         Vec3d left = mc.player.getRotationVector().rotateY((float)Math.toRadians(90));
         Vec3d right = mc.player.getRotationVector().rotateY((float)Math.toRadians(-90));
-        Vec3d leftCheck = mc.player.getPos().add(left);
-        Vec3d rightCheck = mc.player.getPos().add(right);
+        Vec3d leftCheck = mc.player.getEntityPos().add(left);
+        Vec3d rightCheck = mc.player.getEntityPos().add(right);
         BlockPos leftBlock = BlockPos.ofFloored(leftCheck);
         BlockPos rightBlock = BlockPos.ofFloored(rightCheck);
         boolean leftClear = mc.world.getBlockState(leftBlock).isAir();
@@ -1635,7 +1637,7 @@ public class StashMover extends Module {
     }
     private void attemptAlternativeApproach() {
         if (currentContainer == null) return;
-        Vec3d playerPos = mc.player.getPos();
+        Vec3d playerPos = mc.player.getEntityPos();
         Vec3d containerPos = Vec3d.of(currentContainer.pos).add(0.5, 0, 0.5);
         Vec3d[] approachPoints = {
             containerPos.add(2, 0, 0),
@@ -1679,7 +1681,7 @@ public class StashMover extends Module {
         double pitch = Rotations.getPitch(containerCenter);
         mc.player.setYaw((float)yaw);
         mc.player.setPitch((float)pitch);
-        Vec3d pos = mc.player.getPos();
+        Vec3d pos = mc.player.getEntityPos();
         mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.Full(
             pos.x, pos.y, pos.z, (float)yaw, (float)pitch,
             mc.player.isOnGround(), mc.player.horizontalCollision));
@@ -2192,9 +2194,9 @@ public class StashMover extends Module {
             waitingForPearl = true;
             lastPearlMessageTime = System.currentTimeMillis();
             pearlRetryCount = 0;
-            initialPlayerPos = mc.player.getPos();
+            initialPlayerPos = mc.player.getEntityPos();
         }
-        Vec3d currentPos = mc.player.getPos();
+        Vec3d currentPos = mc.player.getEntityPos();
         double distance = currentPos.distanceTo(initialPlayerPos);
         if (distance > 100) {
             if (isNearOutputArea()) {
@@ -2244,7 +2246,7 @@ public class StashMover extends Module {
             pickupPos = outputPearlPickupPos.get();
         }
         ensureOffhandHasItem();
-        double distance = mc.player.getPos().distanceTo(Vec3d.ofCenter(pickupPos));
+        double distance = mc.player.getEntityPos().distanceTo(Vec3d.ofCenter(pickupPos));
         if (distance > 3) {
             GoalBlock goal = new GoalBlock(pickupPos);
             BaritoneAPI.getProvider().getPrimaryBaritone().getCustomGoalProcess().setGoalAndPath(goal);
@@ -2298,7 +2300,7 @@ public class StashMover extends Module {
                 stateTimer = 5;
             } else {
                 BlockPos pickupPos = isGoingToInput ? inputPearlPickupPos.get() : outputPearlPickupPos.get();
-                double distance = mc.player.getPos().distanceTo(Vec3d.ofCenter(pickupPos));
+                double distance = mc.player.getEntityPos().distanceTo(Vec3d.ofCenter(pickupPos));
                 if (distance > 1.0) {
                     GoalBlock goal = new GoalBlock(pickupPos);
                     BaritoneAPI.getProvider().getPrimaryBaritone().getCustomGoalProcess().setGoalAndPath(goal);
@@ -2314,7 +2316,7 @@ public class StashMover extends Module {
         } else {
             throwPos = outputPearlThrowPos.get();
         }
-        double distance = mc.player.getPos().distanceTo(Vec3d.ofCenter(throwPos));
+        double distance = mc.player.getEntityPos().distanceTo(Vec3d.ofCenter(throwPos));
         if (distance <= 1.5) {
             if (BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().isPathing()) {
                 BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
@@ -2498,7 +2500,7 @@ public class StashMover extends Module {
             FindItemResult pearl = InvUtils.find(Items.ENDER_PEARL);
             if (pearl.found()) {
                 if (mc.player.getMainHandStack().getItem() != Items.ENDER_PEARL) {
-                    previousSlot = mc.player.getInventory().selectedSlot;
+                    previousSlot = ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot();
                     InvUtils.swap(pearl.slot(), false);
                     stateTimer = 3;
                     return;
@@ -2511,7 +2513,7 @@ public class StashMover extends Module {
                     stateTimer--;
                     return;
                 }
-                initialPlayerPos = mc.player.getPos();
+                initialPlayerPos = mc.player.getEntityPos();
                 info("Throwing pearl");
                 mc.interactionManager.interactItem(mc.player, Hand.MAIN_HAND);
                 hasThrownPearl = true;
@@ -2523,8 +2525,8 @@ public class StashMover extends Module {
                 mc.options.rightKey.setPressed(false);
                 mc.options.sprintKey.setPressed(false);
                 mc.options.backKey.setPressed(true);
-                mc.player.input.movementForward = -1.0f;
-                mc.player.input.movementSideways = 0.0f;
+                ((InputAccessor) mc.player.input).setMovementForward(-1.0f);
+                ((InputAccessor) mc.player.input).setMovementSideways(0.0f);
                 rotationSet = false;
                 stateTimer = 20;
                 currentState = ProcessState.RESET_PEARL_WAIT;
@@ -2554,10 +2556,10 @@ public class StashMover extends Module {
             mc.options.rightKey.setPressed(false);
             mc.options.sprintKey.setPressed(false);
             mc.options.backKey.setPressed(true);
-            mc.player.input.movementForward = -1.0f;
-            mc.player.input.movementSideways = 0.0f;
+            ((InputAccessor) mc.player.input).setMovementForward(-1.0f);
+            ((InputAccessor) mc.player.input).setMovementSideways(0.0f);
             if (safeRetreatPos != null) {
-                double distanceToSafe = mc.player.getPos().distanceTo(Vec3d.ofCenter(safeRetreatPos));
+                double distanceToSafe = mc.player.getEntityPos().distanceTo(Vec3d.ofCenter(safeRetreatPos));
                 if (distanceToSafe < 0.5) {
                     info("Reached safe position!");
                     stateTimer = 0;
@@ -2573,11 +2575,11 @@ public class StashMover extends Module {
                 info("Safe distance reached");
                 mc.options.forwardKey.setPressed(false);
                 mc.options.backKey.setPressed(false);
-                mc.player.input.movementForward = 0.0f;
+                ((InputAccessor) mc.player.input).setMovementForward(0.0f);
                 mc.options.sneakKey.setPressed(false);
                 Rotations.rotate(mc.player.getYaw(), mc.player.getPitch());
                 if (initialPlayerPos == null) {
-                    initialPlayerPos = mc.player.getPos();
+                    initialPlayerPos = mc.player.getEntityPos();
                 }
             }
             return;
@@ -2596,14 +2598,14 @@ public class StashMover extends Module {
             } else {
                 throwPos = outputPearlThrowPos.get();
             }
-            double distance = mc.player.getPos().distanceTo(initialPlayerPos);
+            double distance = mc.player.getEntityPos().distanceTo(initialPlayerPos);
             FindItemResult pearlCheck = InvUtils.find(Items.ENDER_PEARL);
             boolean stillHasPearl = pearlCheck.found() && pearlCheck.count() > 0;
             if (distance < 5 && !stillHasPearl) {
                 info("Pearl successfully placed in stasis (no pearl in inventory)");
                 restoreOffhandItem();
                 if (previousSlot >= 0 && previousSlot < 9) {
-                    mc.player.getInventory().selectedSlot = previousSlot;
+                    ((PlayerInventoryAccessor) mc.player.getInventory()).setSelectedSlot(previousSlot);
                     previousSlot = -1;
                 }
                 hasThrownPearl = false;
@@ -2752,14 +2754,14 @@ public class StashMover extends Module {
     private void findNextOutputContainer() {
         currentContainer = outputContainers.stream()
             .filter(c -> !c.isFull)
-            .min(Comparator.comparingDouble(c -> mc.player.getPos().distanceTo(Vec3d.ofCenter(c.pos))))
+            .min(Comparator.comparingDouble(c -> mc.player.getEntityPos().distanceTo(Vec3d.ofCenter(c.pos))))
             .orElse(null);
         if (currentContainer == null) {
             info("All output containers full, rescanning...");
             detectContainersInArea(outputAreaPos1, outputAreaPos2, false);
             currentContainer = outputContainers.stream()
                 .filter(c -> !c.isFull)
-                .min(Comparator.comparingDouble(c -> mc.player.getPos().distanceTo(Vec3d.ofCenter(c.pos))))
+                .min(Comparator.comparingDouble(c -> mc.player.getEntityPos().distanceTo(Vec3d.ofCenter(c.pos))))
                 .orElse(null);
             if (currentContainer == null) {
                 warning("All output containers are still full! Going back to input.");
@@ -2894,13 +2896,13 @@ public class StashMover extends Module {
                     info("Sent kill command: " + killCommand);
                     waitingForRespawn = true;
                     lastKillTime = System.currentTimeMillis();
-                    initialPlayerPos = mc.player.getPos();
+                    initialPlayerPos = mc.player.getEntityPos();
                 }
                 if (mc.player.isDead() || mc.player.getHealth() <= 0) {
                     mc.getNetworkHandler().sendPacket(new ClientStatusC2SPacket(ClientStatusC2SPacket.Mode.PERFORM_RESPAWN));
                     info("Sent respawn packet");
                 }
-                Vec3d currentPos = mc.player.getPos();
+                Vec3d currentPos = mc.player.getEntityPos();
                 double distance = currentPos.distanceTo(initialPlayerPos);
                 if ((distance > 100 || mc.player.getHealth() > 0) && System.currentTimeMillis() - lastKillTime > 1000) {
                     if (isNearInputArea()) {
@@ -2922,9 +2924,9 @@ public class StashMover extends Module {
                     waitingForPearl = true;
                     lastPearlMessageTime = System.currentTimeMillis();
                     pearlRetryCount = 0;
-                    initialPlayerPos = mc.player.getPos();
+                    initialPlayerPos = mc.player.getEntityPos();
                 }
-                Vec3d currentPos = mc.player.getPos();
+                Vec3d currentPos = mc.player.getEntityPos();
                 double distance = currentPos.distanceTo(initialPlayerPos);
                 if (distance > 100) {
                     if (isNearInputArea()) {
@@ -3062,7 +3064,7 @@ public class StashMover extends Module {
                     BlockPos pos = playerPos.add(x, y, z);
                     double dist = playerPos.getSquaredDistance(pos);
                     if (dist > searchRadius * searchRadius) continue;
-                    if (!mc.world.isChunkLoaded(pos)) continue;
+                    if (!mc.world.getChunkManager().isChunkLoaded(pos.getX() >> 4, pos.getZ() >> 4)) continue;
                     Block block = mc.world.getBlockState(pos).getBlock();
                     if (block instanceof EnderChestBlock) {
                         if (dist < closestDistance) {
@@ -3267,7 +3269,7 @@ public class StashMover extends Module {
     }
     private void performImprovedInteraction(Vec3d containerCenter) {
         Vec3d eyePos = mc.player.getEyePos();
-        Vec3d pos = mc.player.getPos();
+        Vec3d pos = mc.player.getEntityPos();
         mc.player.networkHandler.sendPacket(new PlayerMoveC2SPacket.Full(
             pos.x, pos.y, pos.z,
             mc.player.getYaw(), mc.player.getPitch(),
@@ -3357,7 +3359,7 @@ public class StashMover extends Module {
     }
     private void performSmartRepositioning(BlockPos chestPos, double currentDistance) {
         Vec3d chestCenter = Vec3d.ofCenter(chestPos);
-        Vec3d playerPos = mc.player.getPos();
+        Vec3d playerPos = mc.player.getEntityPos();
         double optimalDistance = 2.8;
         Vec3d direction = playerPos.subtract(chestCenter).normalize();
         Vec3d optimalPos = chestCenter.add(direction.multiply(optimalDistance));
@@ -3392,7 +3394,7 @@ public class StashMover extends Module {
     private void improvedManualMovement(ContainerInfo container) {
         if (container == null) return;
         Vec3d targetPos = Vec3d.ofCenter(container.pos);
-        Vec3d playerPos = mc.player.getPos();
+        Vec3d playerPos = mc.player.getEntityPos();
         Vec3d eyePos = mc.player.getEyePos();
         double distance = eyePos.distanceTo(targetPos);
         double horizontalDistance = Math.sqrt(
@@ -3453,7 +3455,7 @@ public class StashMover extends Module {
         double bestDistance = Double.MAX_VALUE;
         for (BlockPos alt : alternatives) {
             if (isValidStandingPosition(alt)) {
-                double dist = mc.player.getPos().distanceTo(Vec3d.ofCenter(alt));
+                double dist = mc.player.getEntityPos().distanceTo(Vec3d.ofCenter(alt));
                 if (dist < bestDistance) {
                     bestDistance = dist;
                     bestAlternative = alt;
@@ -3599,7 +3601,7 @@ public class StashMover extends Module {
         stuckCounter = 0;
     }
     private boolean isBlockedAhead() {
-        Vec3d playerPos = mc.player.getPos();
+        Vec3d playerPos = mc.player.getEntityPos();
         Vec3d lookVec = mc.player.getRotationVector();
         Vec3d checkPos = playerPos.add(lookVec.multiply(1.0));
         BlockPos blockPos = BlockPos.ofFloored(checkPos);

@@ -1,4 +1,5 @@
 package bep.hax.modules;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.ArrayDeque;
@@ -7,7 +8,7 @@ import net.minecraft.item.Item;
 import net.minecraft.text.Text;
 import net.minecraft.item.Items;
 import bep.hax.util.MsgUtil;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.item.ItemStack;
 import java.util.concurrent.TimeUnit;
 import bep.hax.util.StardustUtil;
@@ -272,7 +273,7 @@ public class RoadTrip extends Module {
             int currentDurability = maxDurability - equippedElytra.getDamage();
             double percentDurability = Math.floor((currentDurability / (double) maxDurability) * 100);
             if (percentDurability <= 5) {
-                mc.player.playSound(SoundEvents.ENTITY_ITEM_BREAK, pingVolume.get().floatValue(), 1f);
+                mc.player.playSound(SoundEvents.ENTITY_ITEM_BREAK.value(), pingVolume.get().floatValue(), 1f);
                 MsgUtil.updateModuleMsg("Elytra durability: §c" + percentDurability + "§7%", this.name, "roadTripElytraWarn".hashCode());
                 reset = true;
             }
@@ -287,7 +288,7 @@ public class RoadTrip extends Module {
     private boolean hasEnoughElytras() {
         if (mc.player == null) return false;
         ArrayList<Integer> goodSlotsLeft = new ArrayList<>();
-        for (int n = 0; n < mc.player.getInventory().main.size(); n++) {
+        for (int n = 0; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size(); n++) {
             ItemStack stack = mc.player.getInventory().getStack(n);
             if (stack.getItem() == Items.ELYTRA) {
                 int max = stack.getMaxDamage();
@@ -303,7 +304,7 @@ public class RoadTrip extends Module {
     private boolean hasEnoughRockets() {
         if (mc.player == null) return false;
         int totalRocketsLeft = 0;
-        for (int n = 0; n < mc.player.getInventory().main.size(); n++) {
+        for (int n = 0; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size(); n++) {
             ItemStack stack = mc.player.getInventory().getStack(n);
             if (stack.getItem() == Items.FIREWORK_ROCKET) {
                 totalRocketsLeft += stack.getCount();
@@ -314,7 +315,7 @@ public class RoadTrip extends Module {
     private boolean hasEnoughFood() {
         if (mc.player == null) return false;
         int totalFoodLeft = 0;
-        for (int n = 0; n < mc.player.getInventory().main.size(); n++) {
+        for (int n = 0; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size(); n++) {
             ItemStack stack = mc.player.getInventory().getStack(n);
             if (chosenFood.get().contains(stack.getItem())) {
                 totalFoodLeft += stack.getCount();

@@ -1,7 +1,7 @@
 package bep.hax.mixin.meteor;
 import net.minecraft.text.Text;
 import bep.hax.util.LogUtil;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import bep.hax.util.StardustUtil;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,11 +21,13 @@ import bep.hax.mixin.accessor.DisconnectS2CPacketAccessor;
 import meteordevelopment.meteorclient.systems.modules.Category;
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
-import meteordevelopment.meteorclient.systems.modules.misc.AutoLog;
+import meteordevelopment.meteorclient.systems.modules.combat.AutoLog;
 import meteordevelopment.meteorclient.utils.world.TickRate;
 import net.minecraft.item.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.network.packet.s2c.common.DisconnectS2CPacket;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(value = AutoLog.class, remap = false)
@@ -105,6 +107,7 @@ public abstract class AutoLogMixin extends Module {
     private boolean autoReconnectEnabled;
     @Unique
     private boolean waitingForReconnection = false;
+    @SuppressWarnings("unchecked")
     @Override
     public void onActivate() {
         super.onActivate();
@@ -113,7 +116,7 @@ public abstract class AutoLogMixin extends Module {
             waitingForReconnection = false;
             AutoReconnect autoReconnect = Modules.get().get(AutoReconnect.class);
             if (autoReconnect != null) {
-                Setting<Double> delay = ((Setting<Double>) autoReconnect.settings.get("delay"));
+                Setting<Double> delay = (Setting<Double>) autoReconnect.settings.get("delay");
                 if (delay != null) delay.set(oldDelay);
                 if (!autoReconnectEnabled && autoReconnect.isActive()) {
                     autoReconnect.toggle();
@@ -127,7 +130,7 @@ public abstract class AutoLogMixin extends Module {
             MeteorClient.EVENT_BUS.subscribe(this);
         }
     }
-    @Inject(method = "<init>", at = @At(value = "FIELD", target = "Lmeteordevelopment/meteorclient/systems/modules/misc/AutoLog;entities:Lmeteordevelopment/meteorclient/settings/Setting;"))
+    @Inject(method = "<init>", at = @At(value = "FIELD", target = "Lmeteordevelopment/meteorclient/systems/modules/combat/AutoLog;entities:Lmeteordevelopment/meteorclient/settings/Setting;"))
     private void addIllegalDisconnectSetting(CallbackInfo ci) {
         forceKick = sgGeneral.add(
             new BoolSetting.Builder()
@@ -253,6 +256,7 @@ public abstract class AutoLogMixin extends Module {
             requestedDcAt = 0L;
         }
     }
+    @SuppressWarnings("unchecked")
     @EventHandler
     private void onTickBephaxExtended(TickEvent.Post event) {
         if (mc.player == null || mc.player.getAbilities().allowFlying) return;
@@ -262,7 +266,7 @@ public abstract class AutoLogMixin extends Module {
                     AutoReconnect autoReconnect = Modules.get().get(AutoReconnect.class);
                     if (autoReconnect != null) {
                         autoReconnectEnabled = autoReconnect.isActive();
-                        Setting<Double> delay = ((Setting<Double>) autoReconnect.settings.get("delay"));
+                        Setting<Double> delay = (Setting<Double>) autoReconnect.settings.get("delay");
                         if (delay != null) {
                             oldDelay = delay.get();
                             delay.set(secondsToReconnect.get());
@@ -293,8 +297,13 @@ public abstract class AutoLogMixin extends Module {
             return;
         }
         if (logArmor != null && logArmor.get() && armorPercent != null) {
-            for (int i = 0; i < 4; i++) {
-                ItemStack armorPiece = mc.player.getInventory().getArmorStack(i);
+            for (EquipmentSlot slot : new EquipmentSlot[]{
+                EquipmentSlot.FEET,
+                EquipmentSlot.LEGS,
+                EquipmentSlot.CHEST,
+                EquipmentSlot.HEAD
+            }) {
+                ItemStack armorPiece = mc.player.getEquippedStack(slot);
                 if (ignoreElytra != null && ignoreElytra.get() && armorPiece.getItem() == Items.ELYTRA) continue;
                 if (armorPiece.isDamageable()) {
                     int max = armorPiece.getMaxDamage();
@@ -308,7 +317,9 @@ public abstract class AutoLogMixin extends Module {
             }
         }
         if (logPosition != null && logPosition.get() && position != null && distance != null) {
-            double distanceToTarget = mc.player.getPos().multiply(1, 0, 1).distanceTo(position.get().toCenterPos().multiply(1, 0, 1));
+            Vec3d playerPos = new Vec3d(mc.player.getX(), 0, mc.player.getZ());
+            Vec3d targetPos = new Vec3d(position.get().getX(), 0, position.get().getZ());
+            double distanceToTarget = playerPos.distanceTo(targetPos);
             if (distanceToTarget < distance.get()) {
                 bephaxDisconnect("Player was within " + distanceToTarget + " blocks of the target position.", true);
                 return;

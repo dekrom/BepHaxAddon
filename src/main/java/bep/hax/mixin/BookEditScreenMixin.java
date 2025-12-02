@@ -1,8 +1,9 @@
 package bep.hax.mixin;
 import java.util.ArrayList;
 import java.util.Random;
+import net.minecraft.client.gui.EditBox;
 import net.minecraft.text.Text;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
 import bep.hax.util.StardustUtil;
 import bep.hax.modules.BookTools;
@@ -12,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import bep.hax.mixin.accessor.BookEditScreenAccessor;
+import bep.hax.mixin.accessor.EditBoxWidgetAccessor;
 import net.minecraft.client.gui.screen.ingame.BookEditScreen;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -19,10 +21,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(BookEditScreen.class)
 public abstract class BookEditScreenMixin extends Screen {
     private static final Random RANDOM = new Random();
-    @Shadow
-    private boolean dirty;
-    @Shadow
-    private boolean signing;
     protected BookEditScreenMixin(Text title) { super(title); }
     @Unique
     private boolean rainbowMode = false;
@@ -35,25 +33,26 @@ public abstract class BookEditScreenMixin extends Screen {
     @Unique
     private final ArrayList<ButtonWidget> buttons = new ArrayList<>();
     @Unique
+    private void insertText(String text) {
+        EditBox editBox = ((EditBoxWidgetAccessor) ((BookEditScreenAccessor) this).getEditBox()).getEditBox();
+        if (editBox != null) {
+            editBox.replaceSelection(text);
+        }
+    }
+    @Unique
     private void onClickColorButton(ButtonWidget btn) {
         String color = btn.getMessage().getString().substring(0, 2);
-        if (this.signing) {
-            ((BookEditScreenAccessor) this).getBookTitleSelectionManager().insert(color);
-        } else {
-            this.didFormatPage = true;
-            ((BookEditScreenAccessor) this).getCurrentPageSelectionManager().insert(color);
-        }
+        this.didFormatPage = true;
+        insertText(color);
     }
     @Unique
     private void onClickFormatButton(ButtonWidget btn) {
         String format = btn.getMessage().getString().substring(0, 2);
         if (rainbowMode) {
             activeFormatting = format;
-        }else if (this.signing) {
-            ((BookEditScreenAccessor) this).getBookTitleSelectionManager().insert(format);
         } else {
             this.didFormatPage = true;
-            ((BookEditScreenAccessor) this).getCurrentPageSelectionManager().insert(format);
+            insertText(format);
         }
     }
     @Unique
@@ -139,38 +138,28 @@ public abstract class BookEditScreenMixin extends Screen {
             )
         );
     }
-    @Inject(method = "charTyped", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/SelectionManager;insert(Ljava/lang/String;)V"))
-    private void mixinCharTyped(char chr, int modifiers, CallbackInfoReturnable<Boolean> cir) {
-        if (!rainbowMode || signing) return;
-        didFormatPage = true;
-        if (activeFormatting.equals("§r")) {
-            activeFormatting = "";
-            ((BookEditScreenAccessor) this).getCurrentPageSelectionManager().insert("§r" + uCC());
-        } else {
-            ((BookEditScreenAccessor) this).getCurrentPageSelectionManager().insert(uCC() + activeFormatting);
-        }
-    }
     @Inject(method = "finalizeBook", at = @At("HEAD"))
     private void mixinFinalizeBook(CallbackInfo ci) {
-        if (this.dirty && this.didFormatPage) {
-            ((BookEditScreenAccessor) this).getCurrentPageSelectionManager().insert("§r");
+        if (this.didFormatPage) {
+            insertText("§r");
         }
     }
-    @Inject(method = "changePage", at = @At("HEAD"))
-    private void mixinChangePage(CallbackInfo ci) {
+    @Inject(method = "openPreviousPage", at = @At("HEAD"))
+    private void mixinOpenPreviousPage(CallbackInfo ci) {
         this.didFormatPage = false;
     }
-    @Inject(method = "updateButtons", at = @At("TAIL"))
-    private void mixinUpdateButtons(CallbackInfo ci) {
+    @Inject(method = "openNextPage", at = @At("HEAD"))
+    private void mixinOpenNextPage(CallbackInfo ci) {
+        this.didFormatPage = false;
+    }
+    @Inject(method = "updatePage", at = @At("TAIL"))
+    private void mixinUpdatePage(CallbackInfo ci) {
         Modules modules = Modules.get();
         if (modules == null) return;
         BookTools bookTools = modules.get(BookTools.class);
         if (bookTools.skipFormatting()) return;
         for (ButtonWidget btn : this.buttons) {
-            btn.visible = !signing || bookTools.shouldFormatTitles();
-        }
-        if (this.signing && !bookTools.autoTitles.get().trim().isEmpty()) {
-            ((BookEditScreenAccessor) this).getBookTitleSelectionManager().insert(bookTools.autoTitles.get());
+            btn.visible = true;
         }
     }
 }

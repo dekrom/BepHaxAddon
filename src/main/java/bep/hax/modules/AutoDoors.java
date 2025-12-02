@@ -135,7 +135,7 @@ public class AutoDoors extends Module {
         }else mc.player.swingHand(Hand.MAIN_HAND);
     }
     private @NotNull Direction getDirection(BlockPos pos, Direction direction) {
-        Vec3d pPos = mc.player.getPos();
+        Vec3d pPos = mc.player.getEntityPos();
         Direction side;
         switch (direction) {
             case EAST -> {
@@ -264,7 +264,7 @@ public class AutoDoors extends Module {
         if (modeSetting.get() == DoorModes.Spammer || mc.player == null || mc.world == null) return;
         if (mc.world.getBlockState(mc.player.getBlockPos()).getBlock() instanceof PressurePlateBlock) return;
         ++this.ticksSinceInteracted;
-        Vec3d pPos = mc.player.getPos();
+        Vec3d pPos = mc.player.getEntityPos();
         if (pPos.x <= this.lastBlock.x + .1337 && pPos.x >= this.lastBlock.x - .1337
             && pPos.z <= this.lastBlock.z + .1337 && pPos.z >= this.lastBlock.z - .1337) return;
         this.lastBlock = pPos;
@@ -438,7 +438,7 @@ public class AutoDoors extends Module {
         if (this.tickCounter >= spamRate.get()) {
             this.tickCounter = 0;
             if (mc.player == null || mc.world == null) return;
-            Vec3d pPos = mc.player.getPos();
+            Vec3d pPos = mc.player.getEntityPos();
             LongArrayList doors = this.getSurroundingDoors();
             for (long door : doors) {
                 BlockPos doorPos = BlockPos.fromLong(door);

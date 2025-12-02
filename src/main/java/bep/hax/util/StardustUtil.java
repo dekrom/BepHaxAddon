@@ -19,7 +19,6 @@ import meteordevelopment.meteorclient.utils.Utils;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ProfileComponent;
 import meteordevelopment.meteorclient.utils.world.Dimension;
-import bep.hax.mixin.accessor.ClientConnectionAccessor;
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.utils.player.PlayerUtils;
@@ -174,7 +173,7 @@ public class StardustUtil {
         final String hausemasterHeadTexture = "eyJ0aW1lc3RhbXAiOjE0MTYwOTQxOTU2NjIsInByb2ZpbGVJZCI6IjhmMmNlNDUzY2VmMjRiM2ViNjg2ZGMyMWI1MTlhMGExIiwicHJvZmlsZU5hbWUiOiJIYXVzZW1hc3RlciIsImlzUHVibGljIjp0cnVlLCJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGJiY2IyZTE5OTdjN2NiMWJkZjU2MTNkMTMyZWVjNmQ2NzEzM2EyMTYyMWUwZmFlMTU3YTZhZDhmOWIyIn19fQ==";
         final String jackTheRippaHeadTexture = "eyJ0aW1lc3RhbXAiOjE0MTYwOTQxOTUxOTMsInByb2ZpbGVJZCI6IjdmMTk3NjE4MzJjMjQ4NzY4NDFiY2VhMjliZDU4Y2FlIiwicHJvZmlsZU5hbWUiOiJKYWNrdGhlcmlwcGEiLCJpc1B1YmxpYyI6dHJ1ZSwidGV4dHVyZXMiOnsiU0tJTiI6eyJ1cmwiOiJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzExYjk0OWE2MWZhNGNjOGZmZjNkM2I0OTY4MmQyZjk2ZjQxMThmOTI4ZDg2MjIyMmVmNjU2ZTMyYTVmMTIifX19";
         final String cytoToxicTCellHeadTexture = "eyJ0aW1lc3RhbXAiOjE0MDY0MTc0NTE1MDgsInByb2ZpbGVJZCI6ImE0YTVlYmM0OWY0ZTQ3OTVhMjUzN2I4YjA1M2ZiMTdmIiwicHJvZmlsZU5hbWUiOiJDeXRvdG94aWNUY2VsbCIsImlzUHVibGljIjp0cnVlLCJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTlkMWU2YzRmNjFkZmNmZGE2NDE3MjJmNjU3NzJiMTI3YmI0NDFkMGViMjU4YTM2Y2MxOTEzYmU3NTkyNGIxIn19fQ==";
-        Optional<Property> currentPlayerProfileProperties = mc.getGameProfile().getProperties().get("textures").stream().findFirst();
+        Optional<Property> currentPlayerProfileProperties = mc.getGameProfile().properties().get("textures").stream().findFirst();
         String currentPlayerHeadTexture;
         if (currentPlayerProfileProperties.isPresent()) {
             currentPlayerHeadTexture = currentPlayerProfileProperties.get().value();
@@ -187,15 +186,19 @@ public class StardustUtil {
         };
         ItemStack playerHead = new ItemStack(Items.PLAYER_HEAD);
         GameProfile profile = new GameProfile(UUID.randomUUID(), "Stardust");
-        ProfileComponent profileComponent = new ProfileComponent(profile);
-        profileComponent.properties().put(
-            "textures",
-            new Property(
+        try {
+            java.lang.reflect.Field propertiesField = GameProfile.class.getDeclaredField("properties");
+            propertiesField.setAccessible(true);
+            com.mojang.authlib.properties.PropertyMap props = (com.mojang.authlib.properties.PropertyMap) propertiesField.get(profile);
+            props.put(
                 "textures",
-                playerHeadTextures[RANDOM.nextInt(playerHeadTextures.length)],""
-            )
-        );
-        playerHead.set(DataComponentTypes.PROFILE, profileComponent);
+                new Property(
+                    "textures",
+                    playerHeadTextures[RANDOM.nextInt(playerHeadTextures.length)],""
+                )
+            );
+        } catch (Exception e) {
+        }
         ItemStack enchantedPick = new ItemStack(
             RANDOM.nextInt(2) == 0 ? Items.DIAMOND_PICKAXE : Items.NETHERITE_PICKAXE);
         enchantedPick.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
@@ -236,7 +239,7 @@ public class StardustUtil {
                 if (file.createNewFile()) {
                     if (mc.player != null) {
                         MsgUtil.sendMsg("Created " + file.getName() + " in your meteor-client folder.");
-                        Style style = Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, file.getAbsolutePath()));
+                        Style style = Style.EMPTY.withClickEvent(new ClickEvent.OpenFile(file.getAbsolutePath()));
                         MsgUtil.sendMsg("Click §2§lhere §r§7to open the file.", style);
                     }
                     return true;
@@ -281,7 +284,7 @@ public class StardustUtil {
                 Instant.now(),
                 NetworkEncryptionUtils.SecureRandomUtil.nextLong(),
                 null,
-                ((ClientPlayNetworkHandlerAccessor) mc.getNetworkHandler()).getLastSeenMessagesCollector().collect().update()
+                null
             );
             case Interact -> illegalPacket = PlayerInteractEntityC2SPacket.interact(mc.player, false, Hand.MAIN_HAND);
             case Movement -> illegalPacket = new PlayerMoveC2SPacket.PositionAndOnGround(Double.NaN, 69, Double.NaN, false, false);
@@ -294,8 +297,8 @@ public class StardustUtil {
                 mc.options.getSyncedOptions().particleStatus()
             ));
         }
-        if (illegalPacket != null) ((ClientConnectionAccessor) mc.getNetworkHandler().getConnection()).invokeSendImmediately(
-            illegalPacket, null, true
+        if (illegalPacket != null) mc.getNetworkHandler().getConnection().send(
+            illegalPacket, null
         );
     }
     public static void disableAutoReconnect() {

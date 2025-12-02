@@ -15,17 +15,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class DrawContextMixin {
     @Shadow
     public abstract void fill(int x1, int y1, int x2, int y2, int color);
-    @Inject(method = "drawItem(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/world/World;Lnet/minecraft/item/ItemStack;IIII)V", at = @At(value = "HEAD"))
-    private void highlightNamedItems(LivingEntity entity, World world, ItemStack stack, int x, int y, int seed, int z, CallbackInfo ci) {
+    @Inject(method = "drawItem(Lnet/minecraft/item/ItemStack;II)V", at = @At("HEAD"))
+    private void highlightNamedItems(ItemStack stack, int x, int y, CallbackInfo ci) {
         Modules modules = Modules.get();
         if (modules == null) return;
         LoreLocator ll = modules.get(LoreLocator.class);
-        if (ll.isActive() && ll.shouldHighlightSlot(stack)) {
+        if (ll != null && ll.isActive() && ll.shouldHighlightSlot(stack)) {
             this.fill(x - 1, y - 1, x + 17, y + 17, ll.color.get().getPacked());
             return;
         }
         ItemSearchBar isb = modules.get(ItemSearchBar.class);
-        if (isb.isActive() && isb.shouldHighlightSlot(stack)) {
+        if (isb != null && isb.isActive() && isb.shouldHighlightSlot(stack)) {
             this.fill(x - 1, y - 1, x + 17, y + 17, isb.highlightColor.get().getPacked());
         }
     }
@@ -34,12 +34,12 @@ public abstract class DrawContextMixin {
         Modules modules = Modules.get();
         if (modules == null) return;
         LoreLocator ll = modules.get(LoreLocator.class);
-        if (ll.isActive() && ll.shouldHighlightSlot(stack)) {
+        if (ll != null && ll.isActive() && ll.shouldHighlightSlot(stack)) {
             this.fill(x - 1, y - 1, x + 17, y + 17, ll.color.get().getPacked());
             return;
         }
         ItemSearchBar isb = modules.get(ItemSearchBar.class);
-        if (isb.isActive() && isb.shouldHighlightSlot(stack)) {
+        if (isb != null && isb.isActive() && isb.shouldHighlightSlot(stack)) {
             this.fill(x - 1, y - 1, x + 17, y + 17, isb.highlightColor.get().getPacked());
         }
     }

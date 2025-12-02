@@ -154,12 +154,12 @@ public abstract class TimerMixin extends Module {
     private void onTick(TickEvent.Pre event) {
         if (!Utils.canUpdate() || !autoAdjust.get() || mc.player == null) return;
         if (lastPlayerPos != null) {
-            net.minecraft.util.math.Vec3d currentPos = mc.player.getPos();
+            net.minecraft.util.math.Vec3d currentPos = mc.player.getEntityPos();
             double distanceTraveled = currentPos.subtract(lastPlayerPos).multiply(1, 0, 1).length();
             double speedBPS = distanceTraveled * 20.0;
             currentSpeed = speedBPS * 3.6;
         }
-        lastPlayerPos = mc.player.getPos();
+        lastPlayerPos = mc.player.getEntityPos();
         tickCounter++;
         if (tickCounter < checkInterval.get()) return;
         tickCounter = 0;

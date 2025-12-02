@@ -130,6 +130,10 @@ public class WheelPicker extends Module {
     private double initialMouseX = 0;
     private double initialMouseY = 0;
     private boolean wasGrabbed = false;
+    private final Module[] cachedModules = new Module[8];
+    private final boolean[] cachedModuleStates = new boolean[8];
+    private long lastModuleCacheUpdate = 0;
+    private static final long MODULE_CACHE_INTERVAL = 100;
     private static final String RANDOM_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final String[] SLOT_NAMES = {
         "Top", "Top-Right", "Right", "Bottom-Right",
@@ -299,26 +303,37 @@ public class WheelPicker extends Module {
         int scaledHeight = mc.getWindow().getScaledHeight();
         int centerX = scaledWidth / 2 + wheelX.get();
         int centerY = scaledHeight / 2 + wheelY.get();
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
         int radius = wheelRadius.get();
         renderWheel(context, centerX, centerY, radius);
-        RenderSystem.disableBlend();
     }
     private void renderWheel(DrawContext context, int centerX, int centerY, int radius) {
-        drawFilledCircle(context, centerX, centerY, radius, backgroundColor.get());
+        updateModuleCache();
+        drawFilledCircleOptimized(context, centerX, centerY, radius, backgroundColor.get());
         if (selectedSlot >= 0 && selectedSlot < 8) {
-            drawWheelSection(context, centerX, centerY, radius, selectedSlot, true);
+            drawWheelSectionOptimized(context, centerX, centerY, radius, selectedSlot);
         }
         for (int i = 0; i < 8; i++) {
             drawSectionLabel(context, centerX, centerY, radius, i);
         }
     }
-    private void drawFilledCircle(DrawContext context, int centerX, int centerY, int radius, Color color) {
+    private void drawFilledCircleOptimized(DrawContext context, int centerX, int centerY, int radius, Color color) {
+        int radiusSq = radius * radius;
+        int packedColor = color.getPacked();
         for (int y = -radius; y <= radius; y++) {
-            int width = (int)Math.sqrt(radius * radius - y * y);
-            context.fill(centerX - width, centerY + y, centerX + width + 1, centerY + y + 1, color.getPacked());
+            int ySq = y * y;
+            int xMax = (int)Math.sqrt(radiusSq - ySq);
+            if (xMax > 0) {
+                context.fill(centerX - xMax, centerY + y, centerX + xMax + 1, centerY + y + 1, packedColor);
+            }
+        }
+    }
+    private void drawSectionDividers(DrawContext context, int centerX, int centerY, int radius) {
+        int borderColorPacked = borderColor.get().getPacked();
+        for (int i = 0; i < 8; i++) {
+            double angle = Math.toRadians(i * 45 - 90);
+            int endX = centerX + (int)(Math.cos(angle) * radius);
+            int endY = centerY + (int)(Math.sin(angle) * radius);
+            drawLineOptimized(context, centerX, centerY, endX, endY, borderColorPacked);
         }
     }
     private void drawCircleOutline(DrawContext context, int centerX, int centerY, int radius, Color color, int thickness) {
@@ -350,51 +365,65 @@ public class WheelPicker extends Module {
     private void drawPixel(DrawContext context, int x, int y, int color) {
         context.fill(x, y, x + 1, y + 1, color);
     }
-    private void drawWheelSection(DrawContext context, int centerX, int centerY, int radius, int sectionIndex, boolean selected) {
-        if (!selected) return;
+    private void drawWheelSectionOptimized(DrawContext context, int centerX, int centerY, int radius, int sectionIndex) {
         double startAngle = Math.toRadians(sectionIndex * 45 - 90 - 22.5);
         double endAngle = startAngle + Math.toRadians(45);
-        Color color = selectedColor.get();
-        int segments = 45;
+        int packedColor = selectedColor.get().getPacked();
+        int segments = 8;
+        double angleStep = (endAngle - startAngle) / segments;
         for (int i = 0; i < segments; i++) {
-            double angle1 = startAngle + (endAngle - startAngle) * i / segments;
-            double angle2 = startAngle + (endAngle - startAngle) * (i + 1) / segments;
+            double angle1 = startAngle + angleStep * i;
+            double angle2 = startAngle + angleStep * (i + 1);
             int x1 = centerX + (int)(Math.cos(angle1) * radius);
             int y1 = centerY + (int)(Math.sin(angle1) * radius);
             int x2 = centerX + (int)(Math.cos(angle2) * radius);
             int y2 = centerY + (int)(Math.sin(angle2) * radius);
-            fillTriangle(context, centerX, centerY, x1, y1, x2, y2, color.getPacked());
+            fillTriangleOptimized(context, centerX, centerY, x1, y1, x2, y2, packedColor);
         }
     }
-    private void fillTriangle(DrawContext context, int x0, int y0, int x1, int y1, int x2, int y2, int color) {
-        int minY = Math.min(Math.min(y0, y1), y2);
-        int maxY = Math.max(Math.max(y0, y1), y2);
-        for (int y = minY; y <= maxY; y++) {
-            int minX = Integer.MAX_VALUE;
-            int maxX = Integer.MIN_VALUE;
-            if ((y0 <= y && y <= y1) || (y1 <= y && y <= y0)) {
-                if (y1 != y0) {
-                    int x = x0 + (x1 - x0) * (y - y0) / (y1 - y0);
-                    minX = Math.min(minX, x);
-                    maxX = Math.max(maxX, x);
-                }
+    private void fillTriangleOptimized(DrawContext context, int x0, int y0, int x1, int y1, int x2, int y2, int color) {
+        if (y1 < y0) { int t = x0; x0 = x1; x1 = t; t = y0; y0 = y1; y1 = t; }
+        if (y2 < y0) { int t = x0; x0 = x2; x2 = t; t = y0; y0 = y2; y2 = t; }
+        if (y2 < y1) { int t = x1; x1 = x2; x2 = t; t = y1; y1 = y2; y2 = t; }
+        if (y0 == y2) return;
+        if (y1 > y0) {
+            int dy1 = y1 - y0;
+            int dy2 = y2 - y0;
+            for (int y = y0; y <= y1; y++) {
+                int xa = dy1 != 0 ? x0 + (x1 - x0) * (y - y0) / dy1 : x0;
+                int xb = dy2 != 0 ? x0 + (x2 - x0) * (y - y0) / dy2 : x0;
+                if (xa > xb) { int t = xa; xa = xb; xb = t; }
+                context.fill(xa, y, xb + 1, y + 1, color);
             }
-            if ((y1 <= y && y <= y2) || (y2 <= y && y <= y1)) {
-                if (y2 != y1) {
-                    int x = x1 + (x2 - x1) * (y - y1) / (y2 - y1);
-                    minX = Math.min(minX, x);
-                    maxX = Math.max(maxX, x);
-                }
+        }
+        if (y2 > y1) {
+            int dy1 = y2 - y1;
+            int dy2 = y2 - y0;
+            for (int y = y1 + 1; y <= y2; y++) {
+                int xa = dy1 != 0 ? x1 + (x2 - x1) * (y - y1) / dy1 : x1;
+                int xb = dy2 != 0 ? x0 + (x2 - x0) * (y - y0) / dy2 : x0;
+                if (xa > xb) { int t = xa; xa = xb; xb = t; }
+                context.fill(xa, y, xb + 1, y + 1, color);
             }
-            if ((y2 <= y && y <= y0) || (y0 <= y && y <= y2)) {
-                if (y0 != y2) {
-                    int x = x2 + (x0 - x2) * (y - y2) / (y0 - y2);
-                    minX = Math.min(minX, x);
-                    maxX = Math.max(maxX, x);
-                }
+        }
+    }
+    private void drawLineOptimized(DrawContext context, int x0, int y0, int x1, int y1, int color) {
+        int dx = Math.abs(x1 - x0);
+        int dy = Math.abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx - dy;
+        while (true) {
+            context.fill(x0, y0, x0 + 1, y0 + 1, color);
+            if (x0 == x1 && y0 == y1) break;
+            int e2 = err << 1;
+            if (e2 > -dy) {
+                err -= dy;
+                x0 += sx;
             }
-            if (minX <= maxX) {
-                context.fill(minX, y, maxX + 1, y + 1, color);
+            if (e2 < dx) {
+                err += dx;
+                y0 += sy;
             }
         }
     }
@@ -429,27 +458,42 @@ public class WheelPicker extends Module {
             }
         }
     }
+    private void updateModuleCache() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastModuleCacheUpdate < MODULE_CACHE_INTERVAL) return;
+        lastModuleCacheUpdate = currentTime;
+        for (int i = 0; i < 8; i++) {
+            SlotConfig slot = slots[i];
+            if (slot.action.get() == MacroAction.TOGGLE_MODULE && !slot.moduleName.get().isEmpty()) {
+                if (cachedModules[i] == null) {
+                    cachedModules[i] = Modules.get().get(slot.moduleName.get());
+                }
+                if (cachedModules[i] != null) {
+                    cachedModuleStates[i] = cachedModules[i].isActive();
+                }
+            } else {
+                cachedModules[i] = null;
+                cachedModuleStates[i] = false;
+            }
+        }
+    }
     private void drawSectionLabel(DrawContext context, int centerX, int centerY, int radius, int sectionIndex) {
         SlotConfig slot = slots[sectionIndex];
         double midAngle = Math.toRadians(sectionIndex * 45 - 90);
         int labelRadius = radius * 2 / 3;
         int labelX = centerX + (int)(Math.cos(midAngle) * labelRadius);
         int labelY = centerY + (int)(Math.sin(midAngle) * labelRadius);
-        boolean isModuleActive = false;
-        if (slot.action.get() == MacroAction.TOGGLE_MODULE && !slot.moduleName.get().isEmpty()) {
-            Module module = Modules.get().get(slot.moduleName.get());
-            if (module != null) {
-                isModuleActive = module.isActive();
-            }
-        }
+        boolean isModuleActive = slot.action.get() == MacroAction.TOGGLE_MODULE &&
+                                 cachedModules[sectionIndex] != null &&
+                                 cachedModuleStates[sectionIndex];
         boolean hasIcon = showIcons.get() && slot.icon.get() != Items.AIR;
-        boolean hasText = showText.get() && !getSlotLabel(slot).isEmpty();
+        boolean hasText = showText.get() && !getSlotLabel(slot, sectionIndex).isEmpty();
         if (!hasIcon && !hasText) return;
         float iconScaleValue = iconScale.get().floatValue();
         float textScaleValue = textScale.get().floatValue();
         int iconSize = (int)(16 * iconScaleValue);
         int spacing = 2;
-        String label = getSlotLabel(slot);
+        String label = getSlotLabel(slot, sectionIndex);
         int textHeight = (int)(mc.textRenderer.fontHeight * textScaleValue);
         int totalHeight = 0;
         if (hasIcon) totalHeight += iconSize;
@@ -459,27 +503,27 @@ public class WheelPicker extends Module {
         if (hasIcon) {
             Item item = slot.icon.get();
             ItemStack stack = new ItemStack(item);
-            context.getMatrices().push();
-            context.getMatrices().translate(labelX, currentY, 0);
-            context.getMatrices().scale(iconScaleValue, iconScaleValue, 1.0f);
+            context.getMatrices().pushMatrix();
+            context.getMatrices().translate(labelX, currentY);
+            context.getMatrices().scale(iconScaleValue, iconScaleValue);
             context.drawItem(stack, -8, 0);
-            context.getMatrices().pop();
+            context.getMatrices().popMatrix();
             currentY += iconSize + spacing;
         }
         if (hasText) {
             Color textColor = isModuleActive ? moduleActiveColor.get() : this.textColor.get();
             int textWidth = mc.textRenderer.getWidth(label);
-            context.getMatrices().push();
-            context.getMatrices().translate(labelX, currentY, 0);
-            context.getMatrices().scale(textScaleValue, textScaleValue, 1.0f);
+            context.getMatrices().pushMatrix();
+            context.getMatrices().translate(labelX, currentY);
+            context.getMatrices().scale(textScaleValue, textScaleValue);
             context.drawText(mc.textRenderer, label,
                 -textWidth / 2,
                 0,
                 textColor.getPacked(), false);
-            context.getMatrices().pop();
+            context.getMatrices().popMatrix();
         }
     }
-    private String getSlotLabel(SlotConfig slot) {
+    private String getSlotLabel(SlotConfig slot, int slotIndex) {
         MacroAction action = slot.action.get();
         if (action == MacroAction.NONE) return "";
         String custom = slot.customText.get();
@@ -488,9 +532,8 @@ public class WheelPicker extends Module {
             case TOGGLE_MODULE:
                 String module = slot.moduleName.get();
                 if (module.isEmpty()) return "";
-                Module m = Modules.get().get(module);
-                if (m != null) {
-                    String state = m.isActive() ? " ✓" : "";
+                if (cachedModules[slotIndex] != null) {
+                    String state = cachedModuleStates[slotIndex] ? " ✓" : "";
                     return (module.length() > 8 ? module.substring(0, 8) : module) + state;
                 }
                 return module.length() > 10 ? module.substring(0, 8) + ".." : module;

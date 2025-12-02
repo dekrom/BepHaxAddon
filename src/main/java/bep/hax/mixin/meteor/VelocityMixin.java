@@ -2,6 +2,7 @@ package bep.hax.mixin.meteor;
 import bep.hax.mixin.accessor.BundleS2CPacketAccessor;
 import bep.hax.mixin.accessor.ExplosionS2CPacketAccessor;
 import bep.hax.mixin.accessor.AccessorClientWorld;
+import bep.hax.mixin.accessor.EntityVelocityUpdateS2CPacketAccessor;
 import bep.hax.util.RotationUtils;
 import bep.hax.util.PushEntityEvent;
 import bep.hax.util.PushOutOfBlocksEvent;
@@ -10,7 +11,6 @@ import bep.hax.util.InventoryManager;
 import bep.hax.util.InventoryManager.VelocityMode;
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
-import meteordevelopment.meteorclient.mixin.EntityVelocityUpdateS2CPacketAccessor;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Category;
 import meteordevelopment.meteorclient.systems.modules.Module;
@@ -37,11 +37,9 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
 @Mixin(value = Velocity.class, remap = false)
 public abstract class VelocityMixin extends Module {
     public VelocityMixin(Category category, String name, String description) {
@@ -151,8 +149,10 @@ public abstract class VelocityMixin extends Module {
             bephax$concealVelocity = true;
         }
         if (event.packet instanceof EntityVelocityUpdateS2CPacket packet && knockback.get()) {
-            if (packet.getEntityId() != mc.player.getId()) return;
-            if (bephax$concealVelocity && packet.getVelocityX() == 0 && packet.getVelocityY() == 0 && packet.getVelocityZ() == 0) {
+            EntityVelocityUpdateS2CPacketAccessor accessor = (EntityVelocityUpdateS2CPacketAccessor) packet;
+            if (accessor.getEntityId() != mc.player.getId()) return;
+            Vec3d velocity = accessor.getVelocity();
+            if (bephax$concealVelocity && velocity.x == 0 && velocity.y == 0 && velocity.z == 0) {
                 bephax$concealVelocity = false;
                 return;
             }
@@ -172,9 +172,12 @@ public abstract class VelocityMixin extends Module {
                     }
                     double hMult = knockbackHorizontal.get() / 100.0;
                     double vMult = knockbackVertical.get() / 100.0;
-                    ((EntityVelocityUpdateS2CPacketAccessor) packet).setX((int) (packet.getVelocityX() * hMult));
-                    ((EntityVelocityUpdateS2CPacketAccessor) packet).setY((int) (packet.getVelocityY() * vMult));
-                    ((EntityVelocityUpdateS2CPacketAccessor) packet).setZ((int) (packet.getVelocityZ() * hMult));
+                    Vec3d modifiedVelocity = new Vec3d(
+                        velocity.x * hMult,
+                        velocity.y * vMult,
+                        velocity.z * hMult
+                    );
+                    ((meteordevelopment.meteorclient.mixin.EntityVelocityUpdateS2CPacketAccessor) packet).meteor$setVelocity(modifiedVelocity);
                 }
                 case GRIM -> {
                     if (!bephax$inventoryManager.hasPassed(100)) {
@@ -282,10 +285,12 @@ public abstract class VelocityMixin extends Module {
                 allowedBundle.add(subPacket);
             }
             else if (subPacket instanceof EntityVelocityUpdateS2CPacket packet && knockback.get()) {
-                if (packet.getEntityId() != mc.player.getId()) {
+                EntityVelocityUpdateS2CPacketAccessor accessor = (EntityVelocityUpdateS2CPacketAccessor) packet;
+                if (accessor.getEntityId() != mc.player.getId()) {
                     allowedBundle.add(subPacket);
                     continue;
                 }
+                Vec3d velocity = accessor.getVelocity();
                 if (bephax$mode.get() == VelocityMode.WALLS) {
                     if (!bephax$isPhased() && (!bephax$wallsTrapped.get() || !bephax$isWallsTrapped())) {
                         allowedBundle.add(subPacket);
@@ -303,9 +308,12 @@ public abstract class VelocityMixin extends Module {
                         } else {
                             double hMult = knockbackHorizontal.get() / 100.0;
                             double vMult = knockbackVertical.get() / 100.0;
-                            ((EntityVelocityUpdateS2CPacketAccessor) packet).setX((int) (packet.getVelocityX() * hMult));
-                            ((EntityVelocityUpdateS2CPacketAccessor) packet).setY((int) (packet.getVelocityY() * vMult));
-                            ((EntityVelocityUpdateS2CPacketAccessor) packet).setZ((int) (packet.getVelocityZ() * hMult));
+                            Vec3d modifiedVelocity = new Vec3d(
+                                velocity.x * hMult,
+                                velocity.y * vMult,
+                                velocity.z * hMult
+                            );
+                            ((meteordevelopment.meteorclient.mixin.EntityVelocityUpdateS2CPacketAccessor) packet).meteor$setVelocity(modifiedVelocity);
                             allowedBundle.add(subPacket);
                         }
                     }

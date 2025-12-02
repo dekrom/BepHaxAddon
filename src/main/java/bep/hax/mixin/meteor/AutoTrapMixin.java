@@ -1,4 +1,5 @@
 package bep.hax.mixin.meteor;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import bep.hax.util.RotationUtils;
 import bep.hax.util.RotationUtils;
 import bep.hax.util.InventoryManager;
@@ -233,7 +234,7 @@ public abstract class AutoTrapMixin extends Module {
     @Unique
     private void bephax$placeGrimBlock(PlayerInteractBlockC2SPacket packet) {
         BlockHitResult hitResult = packet.getBlockHitResult();
-        int currentSlot = mc.player.getInventory().selectedSlot;
+        int currentSlot = ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot();
         bephax$inventoryManager.setSlot(currentSlot);
         if (bephax$grimRotate.get()) {
             Vec3d blockPos = Vec3d.ofCenter(hitResult.getBlockPos());

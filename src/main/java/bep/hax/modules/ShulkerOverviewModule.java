@@ -17,7 +17,22 @@ import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.text.Text;
 import bep.hax.util.ShulkerDataParser;
 import java.util.Map;
+import java.util.WeakHashMap;
 public class ShulkerOverviewModule extends Module {
+    private final WeakHashMap<ItemStack, CachedShulkerData> shulkerCache = new WeakHashMap<>();
+    private static class CachedShulkerData {
+        final Map<Item, Integer> itemCounts;
+        final Item mostCommonItem;
+        final boolean hasMultiple;
+        CachedShulkerData(Map<Item, Integer> itemCounts) {
+            this.itemCounts = itemCounts;
+            this.hasMultiple = itemCounts.size() > 1;
+            this.mostCommonItem = itemCounts.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
+        }
+    }
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
     public final Setting<Integer> iconSize = sgGeneral.add(new IntSetting.Builder()
         .name("icon-size")
@@ -64,19 +79,21 @@ public class ShulkerOverviewModule extends Module {
         if (stack.isEmpty()) return;
         if (!(stack.getItem() instanceof BlockItem blockItem)) return;
         if (!(blockItem.getBlock() instanceof ShulkerBoxBlock)) return;
-        Map<Item, Integer> itemCounts = ShulkerDataParser.parseShulkerContents(stack);
-        if (itemCounts.isEmpty()) return;
-        Map.Entry<Item, Integer> mostCommon = itemCounts.entrySet().stream()
-            .max(Map.Entry.comparingByValue())
-            .orElse(null);
-        if (mostCommon == null) return;
-        Item item = mostCommon.getKey();
-        int count = mostCommon.getValue();
-        boolean hasMultiple = itemCounts.size() > 1;
+        CachedShulkerData cached = shulkerCache.get(stack);
+        if (cached == null) {
+            Map<Item, Integer> itemCounts = ShulkerDataParser.parseShulkerContents(stack);
+            if (itemCounts.isEmpty()) return;
+            cached = new CachedShulkerData(itemCounts);
+            shulkerCache.put(stack, cached);
+        }
+        if (cached.mostCommonItem == null) return;
+        Item item = cached.mostCommonItem;
+        boolean hasMultiple = cached.hasMultiple;
         if (debugMode.get()) {
             MinecraftClient mc = MinecraftClient.getInstance();
+            int count = cached.itemCounts.getOrDefault(item, 0);
             String debug = String.format("Items: %d, Most: %s x%d",
-                itemCounts.size(),
+                cached.itemCounts.size(),
                 item.getName().getString(),
                 count);
             context.drawText(mc.textRenderer, debug, x, y - 10, 0xFFFFFF, true);
@@ -105,35 +122,26 @@ public class ShulkerOverviewModule extends Module {
                 iconY = y + 16 - iconSize;
             }
         }
-        context.getMatrices().push();
-        context.getMatrices().translate(0, 0, 200);
+        context.getMatrices().pushMatrix();
         if (iconSize == 16) {
             context.drawItem(new ItemStack(item), iconX, iconY);
         } else {
             float scale = iconSize / 16.0f;
-            context.getMatrices().translate(iconX, iconY, 0);
-            context.getMatrices().scale(scale, scale, 1.0f);
+            context.getMatrices().translate(iconX, iconY);
+            context.getMatrices().scale(scale, scale);
             context.drawItem(new ItemStack(item), 0, 0);
         }
-        context.getMatrices().pop();
+        context.getMatrices().popMatrix();
         if (hasMultiple && !multipleText.get().isEmpty()) {
             renderMultipleIndicator(context, x, y, multipleText.get(), multipleSize.get());
         }
     }
     private void renderMultipleIndicator(DrawContext context, int slotX, int slotY, String text, int size) {
         MinecraftClient mc = MinecraftClient.getInstance();
-        Text textComponent = Text.literal(text);
-        float defaultFontHeight = mc.textRenderer.fontHeight;
-        float scale = (float) size / defaultFontHeight;
-        int unscaledWidth = mc.textRenderer.getWidth(textComponent);
-        int textX = slotX + 16 - Math.round(unscaledWidth * scale) - 1;
+        int textWidth = mc.textRenderer.getWidth(text);
+        int textX = slotX + 16 - textWidth - 1;
         int textY = slotY + 1;
-        context.getMatrices().push();
-        context.getMatrices().translate(0, 0, 300);
-        context.getMatrices().translate(textX, textY, 0);
-        context.getMatrices().scale(scale, scale, 1.0f);
-        context.drawText(mc.textRenderer, textComponent, 0, 0, 0xFFFF00, false);
-        context.getMatrices().pop();
+        context.drawText(mc.textRenderer, text, textX, textY, 0xFFFFFF00, true);
     }
     public enum IconPosition {
         BottomRight,

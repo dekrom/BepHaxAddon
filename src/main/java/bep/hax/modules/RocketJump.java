@@ -1,4 +1,5 @@
 package bep.hax.modules;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import bep.hax.Bep;
 import net.minecraft.item.Item;
 import net.minecraft.util.Hand;
@@ -55,15 +56,15 @@ public class RocketJump extends Module {
             sendToggledMsg();
             return;
         }
-        if (rocketSlot != mc.player.getInventory().selectedSlot) {
+        if (rocketSlot != ((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot()) {
             if (rocketSlot < 9) InvUtils.swap(rocketSlot, true);
             else {
-                InvUtils.move().from(rocketSlot).to(mc.player.getInventory().selectedSlot);
+                InvUtils.move().from(rocketSlot).to(((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot());
             }
         }
         if (mc.interactionManager != null) mc.interactionManager.interactItem(mc.player, Hand.MAIN_HAND);
         if (rocketSlot < 9) InvUtils.swapBack();
-        else InvUtils.move().from(mc.player.getInventory().selectedSlot).to(rocketSlot);
+        else InvUtils.move().from(((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot()).to(rocketSlot);
     }
     private int getRocketSlot() {
         FindItemResult rockets = InvUtils.findInHotbar(Items.FIREWORK_ROCKET);
@@ -150,7 +151,7 @@ public class RocketJump extends Module {
             }
             if (preferChestplate.get()) {
                 boolean found = false;
-                if (chestplate != null) for (int n = 0; n < mc.player.getInventory().main.size(); n++) {
+                if (chestplate != null) for (int n = 0; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size(); n++) {
                     ItemStack stack = mc.player.getInventory().getStack(n);
                     if (stack.isOf(chestplate)) {
                         swapSlot = n;
@@ -158,7 +159,7 @@ public class RocketJump extends Module {
                         break;
                     }
                 }
-                if (!found) for (int n = 0; n < mc.player.getInventory().main.size(); n++) {
+                if (!found) for (int n = 0; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size(); n++) {
                     ItemStack stack = mc.player.getInventory().getStack(n);
                     if (stack.isIn(ItemTags.CHEST_ARMOR)) {
                         swapSlot = n;
@@ -178,7 +179,7 @@ public class RocketJump extends Module {
             if (timer <= 0) {
                 if (swapSlot == -69) {
                     if (preferChestplate.get()) {
-                        if (chestplate != null) for (int n = 0; n < mc.player.getInventory().main.size(); n++) {
+                        if (chestplate != null) for (int n = 0; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size(); n++) {
                             ItemStack stack = mc.player.getInventory().getStack(n);
                             if (stack.isOf(chestplate)) {
                                 InvUtils.move().fromArmor(2).to(n);
@@ -187,7 +188,7 @@ public class RocketJump extends Module {
                                 return;
                             }
                         }
-                        for (int n = 0; n < mc.player.getInventory().main.size(); n++) {
+                        for (int n = 0; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size(); n++) {
                             ItemStack stack = mc.player.getInventory().getStack(n);
                             if (stack.isIn(ItemTags.CHEST_ARMOR)) {
                                 InvUtils.move().fromArmor(2).to(n);

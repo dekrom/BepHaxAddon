@@ -110,11 +110,11 @@ public class PearlLoader extends Module {
         }
         @Override
         public LoadLocation fromTag(NbtCompound tag) {
-            triggerKeyword = tag.getString("keyword");
-            mode = LoadMode.valueOf(tag.getString("mode"));
-            position = new BlockPos(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
-            trapdoorCloseTime = tag.getDouble("closeTime");
-            standTime = tag.getDouble("standTime");
+            triggerKeyword = tag.getString("keyword").orElse("");
+            mode = LoadMode.valueOf(tag.getString("mode").orElse("TRAPDOOR"));
+            position = new BlockPos(tag.getInt("x").orElse(0), tag.getInt("y").orElse(0), tag.getInt("z").orElse(0));
+            trapdoorCloseTime = tag.getDouble("closeTime").orElse(1.0);
+            standTime = tag.getDouble("standTime").orElse(0.0);
             return this;
         }
     }
@@ -173,11 +173,17 @@ public class PearlLoader extends Module {
         super.fromTag(tag);
         loadLocations.clear();
         if (tag.contains("loadLocations")) {
-            NbtList locationsList = tag.getList("loadLocations", NbtElement.COMPOUND_TYPE);
-            for (int i = 0; i < locationsList.size(); i++) {
-                LoadLocation location = new LoadLocation();
-                location.fromTag(locationsList.getCompound(i));
-                loadLocations.add(location);
+            java.util.Optional<NbtList> locationsListOpt = tag.getList("loadLocations");
+            if (locationsListOpt.isPresent()) {
+                NbtList locationsList = locationsListOpt.get();
+                for (int i = 0; i < locationsList.size(); i++) {
+                    java.util.Optional<NbtCompound> compoundOpt = locationsList.getCompound(i);
+                    if (compoundOpt.isPresent()) {
+                        LoadLocation location = new LoadLocation();
+                        location.fromTag(compoundOpt.get());
+                        loadLocations.add(location);
+                    }
+                }
             }
         }
         return this;
@@ -484,7 +490,7 @@ public class PearlLoader extends Module {
             BlockState state = mc.world.getBlockState(checkPos);
             BlockState below = mc.world.getBlockState(checkPos.down());
             if (state.isAir() && below.isSolidBlock(mc.world, checkPos.down())) {
-                double dist = mc.player.getPos().distanceTo(Vec3d.ofCenter(checkPos));
+                double dist = mc.player.getEntityPos().distanceTo(Vec3d.ofCenter(checkPos));
                 if (dist < minDist) {
                     minDist = dist;
                     bestPos = checkPos;
@@ -494,7 +500,7 @@ public class PearlLoader extends Module {
         return bestPos != null ? bestPos : trapPos.north();
     }
     private Direction getClosestSide(BlockPos pos) {
-        Vec3d playerPos = mc.player.getPos();
+        Vec3d playerPos = mc.player.getEntityPos();
         Vec3d blockCenter = Vec3d.ofCenter(pos);
         Vec3d diff = playerPos.subtract(blockCenter);
         if (Math.abs(diff.x) > Math.abs(diff.z)) {
@@ -505,7 +511,7 @@ public class PearlLoader extends Module {
     }
     private double getDistanceToTarget(BlockPos target) {
         if (mc.player == null || target == null) return Double.MAX_VALUE;
-        return mc.player.getPos().distanceTo(Vec3d.ofCenter(target));
+        return mc.player.getEntityPos().distanceTo(Vec3d.ofCenter(target));
     }
     private void startPathing(BlockPos target) {
         if (target == null) return;
@@ -593,8 +599,11 @@ public class PearlLoader extends Module {
             headerList.add(theme.label("Location " + (i + 1) + ":")).expandX();
             WButton removeButton = headerList.add(theme.button("-")).widget();
             removeButton.action = () -> {
-                loadLocations.remove(index);
-                info("Load location removed. Close and reopen settings to see changes.");
+                if (loadLocations.remove(location)) {
+                    info("Load location removed. Close and reopen settings to see changes.");
+                } else {
+                    error("Failed to remove load location. Please close and reopen settings.");
+                }
             };
             WButton triggerButton = headerList.add(theme.button("Trigger")).widget();
             triggerButton.action = () -> {
@@ -605,25 +614,25 @@ public class PearlLoader extends Module {
             };
             WTextBox keywordBox = mainList.add(theme.textBox(location.triggerKeyword)).expandX().widget();
             keywordBox.action = () -> {
-                loadLocations.get(index).triggerKeyword = keywordBox.get();
+                location.triggerKeyword = keywordBox.get();
             };
             mainList.add(theme.label("Position: " + location.position.toShortString()));
             WHorizontalList posButtons = mainList.add(theme.horizontalList()).expandX().widget();
             WButton setPosButton = posButtons.add(theme.button("Set to Player Pos")).widget();
             setPosButton.action = () -> {
                 if (mc.player != null) {
-                    loadLocations.get(index).position = mc.player.getBlockPos();
+                    location.position = mc.player.getBlockPos();
                 }
             };
             mainList.add(theme.label("Mode: " + location.mode.toString()));
             WHorizontalList modeButtons = mainList.add(theme.horizontalList()).expandX().widget();
             WButton trapdoorButton = modeButtons.add(theme.button("Trapdoor")).widget();
             trapdoorButton.action = () -> {
-                loadLocations.get(index).mode = LoadMode.TRAPDOOR;
+                location.mode = LoadMode.TRAPDOOR;
             };
             WButton walkToButton = modeButtons.add(theme.button("Walk To")).widget();
             walkToButton.action = () -> {
-                loadLocations.get(index).mode = LoadMode.WALK_TO;
+                location.mode = LoadMode.WALK_TO;
             };
             if (location.mode == LoadMode.TRAPDOOR) {
                 mainList.add(theme.label("Close Time: " + location.trapdoorCloseTime + "s"));

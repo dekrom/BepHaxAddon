@@ -1,11 +1,12 @@
 package bep.hax.mixin;
 import net.minecraft.text.Text;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import bep.hax.modules.Loadouts;
 import bep.hax.util.StardustUtil;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import net.minecraft.client.gui.tooltip.Tooltip;
+import net.minecraft.client.gui.DrawContext;
 import org.spongepowered.asm.mixin.injection.At;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.entity.player.PlayerInventory;
@@ -16,6 +17,9 @@ import meteordevelopment.meteorclient.systems.modules.Modules;
 import net.minecraft.client.gui.screen.ingame.RecipeBookScreen;
 import net.minecraft.client.gui.screen.recipebook.RecipeBookWidget;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.client.gui.screen.recipebook.RecipeBookProvider;
 @Mixin(InventoryScreen.class)
 public abstract class InventoryScreenMixin extends RecipeBookScreen<PlayerScreenHandler>
@@ -82,7 +86,7 @@ public abstract class InventoryScreenMixin extends RecipeBookScreen<PlayerScreen
         if (loadLoadoutButton != null) loadLoadoutButton.visible = loadouts.isActive();
     }
     @Inject(method = "render", at = @At("TAIL"))
-    private void mixinRender(CallbackInfo ci) {
+    private void mixinRender(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         if (loadouts == null) {
             Modules modules = Modules.get();
             if (modules == null ) return;

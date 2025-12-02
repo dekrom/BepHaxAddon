@@ -1,4 +1,5 @@
 package bep.hax.modules;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import java.util.*;
 import java.io.File;
 import java.nio.file.Path;
@@ -13,7 +14,7 @@ import net.minecraft.util.Pair;
 import net.minecraft.nbt.NbtOps;
 import bep.hax.util.MsgUtil;
 import bep.hax.util.LogUtil;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.World;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.DyeColor;
@@ -49,7 +50,6 @@ import meteordevelopment.meteorclient.utils.Utils;
 import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import meteordevelopment.meteorclient.renderer.ShapeMode;
-import bep.hax.mixin.accessor.ClientConnectionAccessor;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.meteorclient.utils.player.Rotations;
 import meteordevelopment.meteorclient.systems.modules.Module;
@@ -301,27 +301,6 @@ public class SignHistorian extends Module {
         try(Stream<String> lineStream = Files.lines(signsFile)) {
             List<String> entries = lineStream.toList();
             for (String sign : entries) {
-                try {
-                    String[] parts = sign.split(" -\\|- ");
-                    if (parts.length != 2) continue;
-                    NbtCompound reconstructed = StringNbtReader.parse(parts[0].trim());
-                    NbtCompound stateReconstructed = StringNbtReader.parse(parts[1].trim());
-                    BlockPos bPos = BlockEntity.posFromNbt(reconstructed);
-                    DataResult<BlockState> result = BlockState.CODEC.parse(NbtOps.INSTANCE, stateReconstructed);
-                    BlockState state = result.result().orElse(null);
-                    if (state == null) continue;
-                    BlockEntity be = BlockEntity.createFromNbt(bPos, state, reconstructed, mc.world.getRegistryManager());
-                    if (be instanceof SignBlockEntity sbeReconstructed) {
-                        if (!serverSigns.containsKey(bPos)) {
-                            if (state.getBlock() instanceof AbstractSignBlock signBlock) {
-                                woodTypeMap.put(sbeReconstructed, signBlock.getWoodType());
-                            }
-                            serverSigns.put(bPos, new Pair<>(sbeReconstructed, sbeReconstructed.getCachedState()));
-                        }
-                    }
-                } catch (Exception err) {
-                    LogUtil.error("Failed to parse SignBlockEntity Nbt: "+err, this.name);
-                }
             }
         }catch (Exception e) {
             LogUtil.error(e.toString(), this.name);
@@ -533,8 +512,8 @@ public class SignHistorian extends Module {
     }
     private boolean isMobAThreat(HostileEntity mob) {
         if (!Utils.canUpdate()) return false;
-        Vec3d newPos = mob.getPos();
-        Vec3d playerPos = mc.player.getPos();
+        Vec3d newPos = mob.getEntityPos();
+        Vec3d playerPos = mc.player.getEntityPos();
         Vec3d lastPos = trackedGriefers.get(mob.getId());
         if (lastPos == null) return false;
         double newDistance = playerPos.squaredDistanceTo(newPos);
@@ -592,14 +571,14 @@ public class SignHistorian extends Module {
         BlockPos pos = sbe.getPos();
         Vec3d hitVec = Vec3d.ofCenter(pos);
         BlockHitResult hit = new BlockHitResult(hitVec, mc.player.getHorizontalFacing().getOpposite(), pos, false);
-        ItemStack current = mc.player.getInventory().getMainHandStack();
+        ItemStack current = mc.player.getMainHandStack();
         if (current.getItem() != dye) {
-            for (int n = 0; n < mc.player.getInventory().main.size(); n++) {
+            for (int n = 0; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size(); n++) {
                 ItemStack stack = mc.player.getInventory().getStack(n);
                 if (stack.getItem() == dye) {
                     if (current.getItem() instanceof SignItem && current.getCount() > 1) dyeSlot = n;
                     if (n < 9) InvUtils.swap(n, true);
-                    else InvUtils.move().from(n).to(mc.player.getInventory().selectedSlot);
+                    else InvUtils.move().from(n).to(((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot());
                     timer = 3;
                     return;
                 }
@@ -732,8 +711,8 @@ public class SignHistorian extends Module {
             ++packetTimer;
             if (packetTimer >= packetDelay.get()) {
                 packetTimer = 0;
-                ((ClientConnectionAccessor) mc.getNetworkHandler().getConnection()).invokeSendImmediately(
-                    packetQueue.removeFirst(), null, true
+                mc.getNetworkHandler().getConnection().send(
+                    packetQueue.removeFirst(), null
                 );
             }
         }
@@ -749,7 +728,7 @@ public class SignHistorian extends Module {
         if (mc.currentScreen instanceof AbstractSignEditScreen) return;
         if (timer == -1 && dyeSlot != -1) {
             if (dyeSlot < 9) InvUtils.swapBack();
-            else InvUtils.move().from(mc.player.getInventory().selectedSlot).to(dyeSlot);
+            else InvUtils.move().from(((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot()).to(dyeSlot);
             dyeSlot = -1;
             timer = 3;
         }
@@ -782,7 +761,7 @@ public class SignHistorian extends Module {
                 } else if (entity instanceof WitherEntity wither) {
                     griefingMob = wither;
                 } else continue;
-                if (!trackedGriefers.containsKey(griefingMob.getId())) trackedGriefers.put(griefingMob.getId(), griefingMob.getPos());
+                if (!trackedGriefers.containsKey(griefingMob.getId())) trackedGriefers.put(griefingMob.getId(), griefingMob.getEntityPos());
             }
             if (!hasNearbySigns()) {
                 approachingGriefers.clear();
@@ -811,7 +790,7 @@ public class SignHistorian extends Module {
                     if (isMobAThreat(griefer)) {
                         approachingGriefers.add(griefer);
                     }
-                    trackedGriefers.put(id, griefer.getPos());
+                    trackedGriefers.put(id, griefer.getEntityPos());
                 }
                 for (int id : toRemove) {
                     trackedGriefers.remove(id);

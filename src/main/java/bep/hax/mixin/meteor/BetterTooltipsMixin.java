@@ -1,6 +1,6 @@
 package bep.hax.mixin.meteor;
 import net.minecraft.text.Text;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -23,7 +23,7 @@ public class BetterTooltipsMixin extends Module {
     private SettingGroup sgOther;
     @Shadow
     @Final
-    private Setting<Boolean> middleClickOpen;
+    private Setting<Boolean> openContents;
     public BetterTooltipsMixin(Category category, String name, String description, String... aliases) {
         super(category, name, description, aliases);
     }
@@ -55,7 +55,7 @@ public class BetterTooltipsMixin extends Module {
                 .description("Left-click on an item in the Peek Screen to add a client-side-only variant to your hotbar.")
                 .defaultValue(false)
                 .onChanged(it -> {
-                    if (it) this.middleClickOpen.set(true);
+                    if (it) this.openContents.set(true);
                 })
                 .build()
         );

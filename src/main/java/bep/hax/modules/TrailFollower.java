@@ -228,6 +228,7 @@ public class TrailFollower extends Module
     private long lastFoundTrailTime;
     private long lastFoundPossibleTrailTime;
     private double pathDistanceActual = pathDistance.get();
+    private boolean started = false;
     private Cache<Long, Byte> seenChunksCache = Caffeine.newBuilder()
         .maximumSize(chunkCacheLength.get())
         .expireAfterWrite(Duration.ofMinutes(5))
@@ -243,96 +244,102 @@ public class TrailFollower extends Module
         trail = new ArrayDeque<>();
         possibleTrail = new ArrayDeque<>();
     }
+    @SuppressWarnings("unchecked")
     @Override
     public void onActivate()
     {
         resetTrail();
         XaeroPlus.EVENT_BUS.register(this);
-        if (mc.player != null && mc.world != null)
+        if (started)
         {
-            RegistryKey<World> currentDimension = mc.world.getRegistryKey();
-            if (oppositeDimension.get())
+            if (mc.player != null && mc.world != null)
             {
-                if (currentDimension.equals(World.END))
+                RegistryKey<World> currentDimension = mc.world.getRegistryKey();
+                if (oppositeDimension.get())
                 {
-                    info("There is no opposite dimension to the end. Disabling TrailFollower");
-                    this.toggle();
-                    return;
-                }
-                else if (currentDimension.equals(World.NETHER))
-                {
-                    info("Following overworld trails from the nether is not supported yet, sorry. Disabling TrailFollower");
-                    this.toggle();
-                    return;
-                }
-            }
-            if (flightMethod.get() != FollowMode.AUTO)
-            {
-                followMode = flightMethod.get();
-            }
-            else
-            {
-                if (!currentDimension.equals(World.NETHER))
-                {
-                    followMode = FollowMode.YAWLOCK;
-                    info("You are in the overworld or end, basic yaw mode will be used.");
-                }
-                else
-                {
-                    try {
-                        Class.forName("baritone.api.BaritoneAPI");
-                        followMode = FollowMode.BARITONE;
-                        info("You are in the nether, baritone mode will be used.");
-                    } catch (ClassNotFoundException e) {
-                        info("Baritone is required to trail follow in the nether. Disabling TrailFollower");
+                    if (currentDimension.equals(World.END))
+                    {
+                        info("There is no opposite dimension to the end. Disabling TrailFollower");
+                        this.toggle();
+                        return;
+                    }
+                    else if (currentDimension.equals(World.NETHER))
+                    {
+                        info("Following overworld trails from the nether is not supported yet, sorry. Disabling TrailFollower");
                         this.toggle();
                         return;
                     }
                 }
-            }
-            if (followMode == FollowMode.YAWLOCK && !mc.world.getRegistryKey().equals(World.NETHER)) {
-                if (overworldFlightMode.get() == OverworldFlightMode.PITCH40) {
-                    Class<? extends Module> pitch40Util = Pitch40Util.class;
-                    Module pitch40UtilModule = Modules.get().get(pitch40Util);
-                    if (!pitch40UtilModule.isActive()) {
-                        pitch40UtilModule.toggle();
-                        if (pitch40Firework.get()) {
-                            Setting<Boolean> setting = ((Setting<Boolean>) pitch40UtilModule.settings.get("auto-firework"));
-                            if (setting != null) {
-                                info("Auto Firework enabled, if you want to change the velocity threshold or the firework cooldown check the settings under Pitch40Util.");
-                                oldAutoFireworkValue = setting.get();
-                                setting.set(true);
-                            }
-                        }
-                        Setting<Boolean> autoBoundAdjustSetting = ((Setting<Boolean>) pitch40UtilModule.settings.get("auto-bound-adjust"));
-                        if (autoBoundAdjustSetting != null) {
-                            oldAutoBoundAdjustValue = autoBoundAdjustSetting.get();
-                            autoBoundAdjustSetting.set(false);
-                        }
+                if (flightMethod.get() != FollowMode.AUTO)
+                {
+                    followMode = flightMethod.get();
+                }
+                else
+                {
+                    if (!currentDimension.equals(World.NETHER))
+                    {
+                        followMode = FollowMode.YAWLOCK;
+                        info("You are in the overworld or end, basic yaw mode will be used.");
                     }
-                } else if (overworldFlightMode.get() == OverworldFlightMode.VANILLA) {
-                    AFKVanillaFly afkVanillaFly = Modules.get().get(AFKVanillaFly.class);
-                    if (!afkVanillaFly.isActive()) {
-                        afkVanillaFly.toggle();
+                    else
+                    {
+                        try {
+                            Class.forName("baritone.api.BaritoneAPI");
+                            followMode = FollowMode.BARITONE;
+                            info("You are in the nether, baritone mode will be used.");
+                        } catch (ClassNotFoundException e) {
+                            info("Baritone is required to trail follow in the nether. Disabling TrailFollower");
+                            this.toggle();
+                            return;
+                        }
                     }
                 }
+                if (followMode == FollowMode.YAWLOCK && !mc.world.getRegistryKey().equals(World.NETHER)) {
+                    if (overworldFlightMode.get() == OverworldFlightMode.PITCH40) {
+                        Class<? extends Module> pitch40Util = Pitch40Util.class;
+                        Module pitch40UtilModule = Modules.get().get(pitch40Util);
+                        if (!pitch40UtilModule.isActive()) {
+                            pitch40UtilModule.toggle();
+                            if (pitch40Firework.get()) {
+                                Setting<Boolean> setting = ((Setting<Boolean>) pitch40UtilModule.settings.get("auto-firework"));
+                                if (setting != null) {
+                                    info("Auto Firework enabled, if you want to change the velocity threshold or the firework cooldown check the settings under Pitch40Util.");
+                                    oldAutoFireworkValue = setting.get();
+                                    setting.set(true);
+                                }
+                            }
+                            Setting<Boolean> autoBoundAdjustSetting = ((Setting<Boolean>) pitch40UtilModule.settings.get("auto-bound-adjust"));
+                            if (autoBoundAdjustSetting != null) {
+                                oldAutoBoundAdjustValue = autoBoundAdjustSetting.get();
+                                autoBoundAdjustSetting.set(false);
+                            }
+                        }
+                    } else if (overworldFlightMode.get() == OverworldFlightMode.VANILLA) {
+                        AFKVanillaFly afkVanillaFly = Modules.get().get(AFKVanillaFly.class);
+                        if (!afkVanillaFly.isActive()) {
+                            afkVanillaFly.toggle();
+                        }
+                    }
+                }
+                Vec3d offset = (new Vec3d(Math.sin(-mc.player.getYaw() * Math.PI / 180), 0, Math.cos(-mc.player.getYaw() * Math.PI / 180)).normalize()).multiply(pathDistance.get());
+                Vec3d targetPos = mc.player.getEntityPos().add(offset);
+                for (int i = 0; i < (maxTrailLength.get() * startDirectionWeighting.get()); i++)
+                {
+                    trail.add(targetPos);
+                }
+                targetYaw = getActualYaw(mc.player.getYaw());
             }
-            Vec3d offset = (new Vec3d(Math.sin(-mc.player.getYaw() * Math.PI / 180), 0, Math.cos(-mc.player.getYaw() * Math.PI / 180)).normalize()).multiply(pathDistance.get());
-            Vec3d targetPos = mc.player.getPos().add(offset);
-            for (int i = 0; i < (maxTrailLength.get() * startDirectionWeighting.get()); i++)
+            else
             {
-                trail.add(targetPos);
+                this.toggle();
             }
-            targetYaw = getActualYaw(mc.player.getYaw());
-        }
-        else
-        {
-            this.toggle();
         }
     }
+    @SuppressWarnings("unchecked")
     @Override
     public void onDeactivate()
     {
+        started = false;
         seenChunksCache = Caffeine.newBuilder()
             .maximumSize(chunkCacheLength.get())
             .expireAfterWrite(Duration.ofMinutes(5))
@@ -391,6 +398,11 @@ public class TrailFollower extends Module
     private void onTick(TickEvent.Post event)
     {
         if (mc.player == null || mc.world == null) return;
+        if (!started)
+        {
+            started = true;
+            onActivate();
+        }
         if (followingTrail && System.currentTimeMillis() - lastFoundTrailTime > trailTimeout.get())
         {
             resetTrail();
@@ -435,10 +447,10 @@ public class TrailFollower extends Module
                             Vec3d baritoneTarget;
                             if (netherPathMode.get() == NetherPathMode.AVERAGE) {
                                 Vec3d averagePos = calculateAveragePosition(trail);
-                                Vec3d directionVec = averagePos.subtract(mc.player.getPos()).normalize();
-                                Vec3d predictedPos = mc.player.getPos().add(directionVec.multiply(10));
+                                Vec3d directionVec = averagePos.subtract(mc.player.getEntityPos()).normalize();
+                                Vec3d predictedPos = mc.player.getEntityPos().add(directionVec.multiply(10));
                                 targetYaw = Rotations.getYaw(predictedPos);
-                                baritoneTarget = positionInDirection(mc.player.getPos(), targetYaw, pathDistanceActual);
+                                baritoneTarget = positionInDirection(mc.player.getEntityPos(), targetYaw, pathDistanceActual);
                             } else {
                                 Vec3d lastPos = trail.getLast();
                                 baritoneTarget = lastPos;
@@ -447,7 +459,7 @@ public class TrailFollower extends Module
                                 .setGoalAndPath(new GoalXZ((int) baritoneTarget.x, (int) baritoneTarget.z));
                         }
                     } else {
-                        Vec3d targetPos = positionInDirection(mc.player.getPos(), targetYaw, pathDistanceActual);
+                        Vec3d targetPos = positionInDirection(mc.player.getEntityPos(), targetYaw, pathDistanceActual);
                         BaritoneAPI.getProvider().getPrimaryBaritone().getCustomGoalProcess().setGoalAndPath(new GoalXZ((int) targetPos.x, (int) targetPos.z));
                         targetYaw = Rotations.getYaw(targetPos);
                     }
@@ -470,7 +482,7 @@ public class TrailFollower extends Module
     private void onRender(Render3DEvent event)
     {
         if (!debug.get()) return;
-        Vec3d targetPos = positionInDirection(mc.player.getPos(), targetYaw, 10);
+        Vec3d targetPos = positionInDirection(mc.player.getEntityPos(), targetYaw, 10);
         event.renderer.line(mc.player.getX(), mc.player.getY(), mc.player.getZ(), targetPos.x, targetPos.y, targetPos.z, new Color(255, 0, 0));
         if (posDebug != null) event.renderer.line(mc.player.getX(), mc.player.getY(), mc.player.getZ(), posDebug.x, targetPos.y, posDebug.z, new Color(0, 0, 255));
     }
@@ -555,8 +567,8 @@ public class TrailFollower extends Module
         if (!trail.isEmpty()) {
             if (followMode == FollowMode.YAWLOCK) {
                 Vec3d averagePos = calculateAveragePosition(trail);
-                Vec3d positionVec = averagePos.subtract(mc.player.getPos()).normalize();
-                Vec3d targetPos = mc.player.getPos().add(positionVec.multiply(10));
+                Vec3d positionVec = averagePos.subtract(mc.player.getEntityPos()).normalize();
+                Vec3d targetPos = mc.player.getEntityPos().add(positionVec.multiply(10));
                 targetYaw = Rotations.getYaw(targetPos);
             } else {
                 Vec3d lastTrailPoint = trail.getLast();
@@ -605,7 +617,7 @@ public class TrailFollower extends Module
         info(message);
         if (!webhookLink.get().isEmpty())
         {
-            sendWebhook(webhookLink.get(), "TrailFollower", message, null, mc.player.getGameProfile().getName());
+            sendWebhook(webhookLink.get(), "TrailFollower", message, null, mc.player.getGameProfile().name());
         }
     }
     public enum FollowMode

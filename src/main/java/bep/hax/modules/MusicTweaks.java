@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import bep.hax.Bep;
 import net.minecraft.text.Text;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import bep.hax.util.StardustUtil;
 import net.minecraft.sound.MusicSound;
 import net.minecraft.sound.SoundEvents;

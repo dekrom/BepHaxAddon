@@ -1,14 +1,11 @@
 package bep.hax.modules;
 import baritone.api.BaritoneAPI;
 import baritone.api.pathing.goals.GoalBlock;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import meteordevelopment.meteorclient.events.entity.player.PlayerMoveEvent;
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.events.world.ChunkDataEvent;
 import meteordevelopment.meteorclient.events.world.PlaySoundEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
-import meteordevelopment.meteorclient.mixininterface.IVec3d;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
@@ -23,7 +20,7 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.MovementType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.network.packet.c2s.play.*;
+import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.network.packet.s2c.play.CloseScreenS2CPacket;
 import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket;
 import bep.hax.Bep;
@@ -130,7 +127,6 @@ public class ElytraFlyPlusPlus extends Module {
         .description("The start position to use when using a custom start position.")
         .defaultValue(new BlockPos(0,0,0))
         .visible(() -> bounce.get() && highwayObstaclePasser.get() && useCustomStartPos.get())
-        .onChanged(pos -> this.targetY.set(pos.getY()))
         .build()
     );
     private final Setting<Boolean> awayFromStartPos = sgObstaclePasser.add(new BoolSetting.Builder()
@@ -226,10 +222,10 @@ public class ElytraFlyPlusPlus extends Module {
         paused = false;
         waitingForChunksToLoad = false;
         elytraToggled = false;
-        lastPos = mc.player.getPos();
-        lastUnstuckPos = mc.player.getPos();
+        lastPos = mc.player.getEntityPos();
+        lastUnstuckPos = mc.player.getEntityPos();
         stuckTimer = 0;
-        if (bounce.get() && mc.player.getPos().multiply(1, 0, 1).length() >= 100)
+        if (bounce.get() && mc.player.getEntityPos().multiply(1, 0, 1).length() >= 100)
         {
             if (BaritoneAPI.getProvider().getPrimaryBaritone().getElytraProcess().currentDestination() == null)
             {
@@ -267,7 +263,7 @@ public class ElytraFlyPlusPlus extends Module {
         if (onlyWhileColliding.get() && !mc.player.horizontalCollision) return;
         if (lastPos != null)
         {
-            double speedBps = mc.player.getPos().subtract(lastPos).multiply(20, 0, 20).length();
+            double speedBps = mc.player.getEntityPos().subtract(lastPos).multiply(20, 0, 20).length();
             Timer timer = Modules.get().get(Timer.class);
             if (timer.isActive()) {
                 speedBps *= timer.getMultiplier();
@@ -276,12 +272,12 @@ public class ElytraFlyPlusPlus extends Module {
             {
                 if (speedBps > 20 || tunnelBounce.get())
                 {
-                    ((IVec3d)event.movement).meteor$setY(0.0);
+                    event.movement = new Vec3d(event.movement.x, 0.0, event.movement.z);
                 }
                 mc.player.setVelocity(mc.player.getVelocity().x, 0.0, mc.player.getVelocity().z);
             }
         }
-        lastPos = mc.player.getPos();
+        lastPos = mc.player.getEntityPos();
     }
     @Override
     public void onDeactivate()
@@ -344,20 +340,20 @@ public class ElytraFlyPlusPlus extends Module {
             else
             {
                 stuckTimer = 0;
-                lastUnstuckPos = mc.player.getPos();
+                lastUnstuckPos = mc.player.getEntityPos();
             }
-            if (highwayObstaclePasser.get() && mc.player.getPos().length() > 100 &&
+            if (highwayObstaclePasser.get() && mc.player.getEntityPos().length() > 100 &&
                 (mc.player.getY() < targetY.get() || mc.player.getY() > targetY.get() + 2 || (mc.player.horizontalCollision && !mc.player.collidedSoftly)
-                    || (portalTrap != null && portalTrap.getSquaredDistance(mc.player.getBlockPos()) < portalAvoidDistance.get() * portalAvoidDistance.get())
-                    || waitingForChunksToLoad
-                    || stuckTimer > 50))
+                || (portalTrap != null && portalTrap.getSquaredDistance(mc.player.getBlockPos()) < portalAvoidDistance.get() * portalAvoidDistance.get())
+                || waitingForChunksToLoad
+                || stuckTimer > 50))
             {
                 waitingForChunksToLoad = false;
                 paused = true;
                 BlockPos goal = mc.player.getBlockPos();
                 double currDistance = distance.get();
                 if (portalTrap != null) {
-                    currDistance += mc.player.getPos().distanceTo(portalTrap.toCenterPos());
+                    currDistance += mc.player.getEntityPos().distanceTo(portalTrap.toCenterPos());
                     portalTrap = null;
                     info("Pathing around portal.");
                 }
@@ -370,7 +366,7 @@ public class ElytraFlyPlusPlus extends Module {
                         return;
                     }
                     Vec3d unitYawVec = yawToDirection(yaw.get());
-                    Vec3d travelVec = mc.player.getPos().subtract(startPos.get().toCenterPos());
+                    Vec3d travelVec = mc.player.getEntityPos().subtract(startPos.get().toCenterPos());
                     double parallelCurrPosDot = travelVec.multiply(new Vec3d(1, 0, 1)).dotProduct(unitYawVec);
                     Vec3d parallelCurrPosComponent = unitYawVec.multiply(parallelCurrPosDot);
                     Vec3d pos = startPos.get().toCenterPos().add(parallelCurrPosComponent);
@@ -425,17 +421,58 @@ public class ElytraFlyPlusPlus extends Module {
     {
         return this.isActive() && !paused && mc.player != null && (fakeFly.get() || mc.player.getEquippedStack(EquipmentSlot.CHEST).getItem().equals(Items.ELYTRA));
     }
+    public boolean isFakeFlyEnabled() {
+        return fakeFly.get();
+    }
+    public boolean shouldDoChestSwapExploit() {
+        return fakeFly.get() && !paused;
+    }
+    public void doChestSwapExploit(org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        if (mc.player == null) return;
+        int slot = getInventoryItemSlot(Items.ELYTRA);
+        boolean elytraEquipped = mc.player.getEquippedStack(EquipmentSlot.CHEST).getItem().equals(Items.ELYTRA);
+        if (!elytraEquipped && slot == -1) return;
+        if (!mc.player.isGliding())
+        {
+            boolean swapBack = false;
+            if (!elytraEquipped)
+            {
+                swapArmor(2, slot);
+                swapBack = true;
+            }
+            sendStartFlyingPacket();
+            mc.player.startGliding();
+            if (swapBack)
+            {
+                swapArmor(2, slot);
+            }
+        }
+        if (mc.player.isOnGround()) {
+            clientJump();
+        }
+    }
+    private void clientJump() {
+        float f = ((bep.hax.mixin.accessor.LivingEntityAccessor) mc.player).invokeGetJumpVelocity();
+        if (!(f <= 1.0E-5F)) {
+            Vec3d vec3d = mc.player.getVelocity();
+            mc.player.setVelocity(vec3d.x, (double) f, vec3d.z);
+            if (mc.player.isSprinting()) {
+                float g = mc.player.getYaw() * 0.017453292F;
+                mc.player.setVelocity(mc.player.getVelocity().add(
+                    (double) (-net.minecraft.util.math.MathHelper.sin(g)) * 0.2,
+                    0.0,
+                    (double) net.minecraft.util.math.MathHelper.cos(g) * 0.2
+                ));
+            }
+            mc.player.velocityDirty = true;
+        }
+    }
     private void doGrimEflyStuff()
     {
-        FindItemResult itemResult = InvUtils.findInHotbar(Items.ELYTRA);
-        if (!itemResult.found()) return;
-        swapToItem(itemResult.slot());
-        sendStartFlyingPacket();
         if (bounce.get() && mc.player.isOnGround() && (!motionYBoost.get() || Utils.getPlayerSpeed().multiply(1, 0, 1).length() < speed.get()))
         {
             mc.player.jump();
         }
-        swapToItem(itemResult.slot());
     }
     @EventHandler
     private void onPlaySound(PlaySoundEvent event)
@@ -459,32 +496,35 @@ public class ElytraFlyPlusPlus extends Module {
             }
         }
     }
-    private void swapToItem(int slot) {
-        ItemStack chestItem = mc.player.getInventory().getStack(38);
-        ItemStack hotbarSwapItem = mc.player.getInventory().getStack(slot);
-        Int2ObjectMap<ItemStack> changedSlots = new Int2ObjectOpenHashMap<>();
-        changedSlots.put(6, hotbarSwapItem);
-        changedSlots.put(slot + 36, chestItem);
-        sendSwapPacket(changedSlots, slot);
+    private int getInventoryItemSlot(net.minecraft.item.Item item) {
+        for (int i = 36; i >= 0; i--) {
+            if (mc.player.getInventory().getStack(i).getItem().equals(item)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    private void pickupSlot(int slot) {
+        mc.interactionManager.clickSlot(mc.player.currentScreenHandler.syncId, slot, 0, SlotActionType.PICKUP, mc.player);
+    }
+    private void swapArmor(int armorSlot, int inSlot) {
+        int slot = inSlot;
+        if (slot < 9) slot += 36;
+        ItemStack stack = mc.player.getEquippedStack(EquipmentSlot.CHEST);
+        armorSlot = 8 - armorSlot;
+        pickupSlot(slot);
+        boolean rt = !stack.isEmpty();
+        pickupSlot(armorSlot);
+        if (rt)
+        {
+            pickupSlot(slot);
+        }
     }
     private void sendStartFlyingPacket() {
         if (mc.player == null) return;
         mc.player.networkHandler.sendPacket(new ClientCommandC2SPacket(
             mc.player,
             ClientCommandC2SPacket.Mode.START_FALL_FLYING
-        ));
-    }
-    private void sendSwapPacket(Int2ObjectMap<ItemStack> changedSlots, int buttonNum) {
-        int syncId  = mc.player.currentScreenHandler.syncId;
-        int stateId = mc.player.currentScreenHandler.getRevision();
-        mc.player.networkHandler.sendPacket(new ClickSlotC2SPacket(
-            syncId,
-            stateId,
-            6,
-            buttonNum,
-            SlotActionType.SWAP,
-            new ItemStack(Items.AIR),
-            changedSlots
         ));
     }
     @EventHandler
@@ -494,7 +534,7 @@ public class ElytraFlyPlusPlus extends Module {
         ChunkPos pos = event.chunk().getPos();
         BlockPos centerPos = pos.getCenterAtY(targetY.get());
         Vec3d moveDir = yawToDirection(yaw.get());
-        double distanceToHighway = distancePointToDirection(Vec3d.of(centerPos), moveDir, mc.player.getPos());
+        double distanceToHighway = distancePointToDirection(Vec3d.of(centerPos), moveDir, mc.player.getEntityPos());
         if (distanceToHighway > 21) return;
         for (int x = 0; x < 16; x++)
         {
@@ -503,7 +543,7 @@ public class ElytraFlyPlusPlus extends Module {
                 for (int y = targetY.get(); y < targetY.get() + 3; y++)
                 {
                     BlockPos position = new BlockPos(pos.x * 16 + x, y, pos.z * 16 + z);
-                    if (distancePointToDirection(Vec3d.of(position), moveDir, mc.player.getPos()) > portalScanWidth.get()) continue;
+                    if (distancePointToDirection(Vec3d.of(position), moveDir, mc.player.getEntityPos()) > portalScanWidth.get()) continue;
                     if (mc.world.getBlockState(position).getBlock().equals(Blocks.NETHER_PORTAL))
                     {
                         BlockPos posBehind = new BlockPos((int)Math.floor(position.getX() + moveDir.x), position.getY(), (int) Math.floor(position.getZ() + moveDir.z));

@@ -1,15 +1,23 @@
 plugins {
-        id("fabric-loom") version "1.10-SNAPSHOT"
+    alias(libs.plugins.fabric.loom)
 }
 
 base {
     archivesName = properties["archives_base_name"] as String
-    version = properties["mod_version"] as String
+    version = libs.versions.mod.version.get()
     group = properties["maven_group"] as String
 }
 
 repositories {
     mavenCentral()
+    maven {
+        name = "meteor-maven"
+        url = uri("https://maven.meteordev.org/releases")
+    }
+    maven {
+        name = "meteor-maven-snapshots"
+        url = uri("https://maven.meteordev.org/snapshots")
+    }
     exclusiveContent {
         forRepository {
             maven {
@@ -21,44 +29,37 @@ repositories {
             includeGroup("maven.modrinth")
         }
     }
-    maven {
-        name = "meteor-maven"
-        url = uri("https://maven.meteordev.org/releases")
-    }
-    maven {
-        name = "meteor-maven-snapshots"
-        url = uri("https://maven.meteordev.org/snapshots")
-    }
 }
 dependencies {
-// Fabric
-    minecraft("com.mojang:minecraft:${properties["minecraft_version"] as String}")
-    mappings("net.fabricmc:yarn:${properties["yarn_mappings"] as String}:v2")
-    modImplementation("net.fabricmc:fabric-loader:${properties["loader_version"] as String}")
-    modApi("meteordevelopment:baritone:${properties["baritone_version"] as String}")
-    modImplementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_version")}")
+    // Fabric
+    minecraft(libs.minecraft)
+    mappings(variantOf(libs.yarn) { classifier("v2") })
+    modImplementation(libs.fabric.loader)
+    modImplementation(libs.fabric.api)
 
-// Meteor
-    modImplementation("meteordevelopment:meteor-client:${project.property("minecraft_version")}-SNAPSHOT")
+    // Meteor
+    modImplementation(libs.meteor.client)
+    modApi(libs.baritone)
 
-// XaeroPlus
-    modImplementation("maven.modrinth:xaeroplus:2.28.1+fabric-1.21.4")
-// XaeroWorldMap
-    modImplementation("maven.modrinth:xaeros-world-map:1.39.12_Fabric_1.21.4")
-// XaeroMinimap
-    modImplementation("maven.modrinth:xaeros-minimap:25.2.10_Fabric_1.21.4")
+    // XaeroPlus
+    modImplementation(libs.xaeroplus)
+    // XaeroWorldMap
+    modImplementation(libs.xaeros.worldmap)
+    // XaeroMinimap
+    modImplementation(libs.xaeros.minimap)
 
     // Include these libraries in the jar
-    implementation(include("net.lenni0451:LambdaEvents:2.4.2")!!)
-    implementation(include("com.github.ben-manes.caffeine:caffeine:3.1.8")!!)
+    modImplementation(libs.lambdaevents)
+    include(libs.lambdaevents)
+    modImplementation(libs.caffeine)
+    include(libs.caffeine)
 }
 
 tasks {
     processResources {
         val propertyMap = mapOf(
             "version" to project.version,
-            "mc_version" to project.property("minecraft_version"),
-            "loader_version" to project.property("loader_version")
+            "mc_version" to libs.versions.minecraft.get()
         )
 
         inputs.properties(propertyMap)
@@ -71,9 +72,10 @@ tasks {
     }
 
     jar {
-        val licenseSuffix = project.base.archivesName.get()
+        inputs.property("archivesName", project.base.archivesName.get())
+
         from("LICENSE") {
-            rename { "${it}_${licenseSuffix}" }
+            rename { "${it}_${inputs.properties["archivesName"]}" }
         }
     }
 
@@ -85,6 +87,8 @@ tasks {
     withType<JavaCompile> {
         options.encoding = "UTF-8"
         options.release = 21
+        options.compilerArgs.add("-Xlint:deprecation")
+        options.compilerArgs.add("-Xlint:unchecked")
     }
 }
 loom {

@@ -1,26 +1,21 @@
 package bep.hax.modules.searcharea.modes;
-
+import bep.hax.accessor.InputAccessor;
 import bep.hax.modules.searcharea.SearchAreaMode;
 import bep.hax.modules.searcharea.SearchAreaModes;
 import meteordevelopment.meteorclient.utils.player.Rotations;
 import net.minecraft.util.math.BlockPos;
-
 import java.io.*;
-
 import static bep.hax.util.Utils.*;
 import static meteordevelopment.meteorclient.utils.player.ChatUtils.info;
-
 public class Spiral extends SearchAreaMode
 {
     private PathingDataSpiral pd;
     private boolean goingToStart = true;
     private long startTime;
-
     public Spiral()
     {
         super(SearchAreaModes.Spiral);
     }
-
     @Override
     public void onActivate()
     {
@@ -44,36 +39,28 @@ public class Spiral extends SearchAreaMode
                 this.disable();
             }
         }
-
     }
-
     @Override
     public void onDeactivate()
     {
         super.onDeactivate();
         super.saveToJson(goingToStart, pd);
-
     }
-
     @Override
     public void onTick()
     {
-
         if (System.nanoTime() - startTime > 6e11)
         {
             startTime = System.nanoTime();
             super.saveToJson(goingToStart, pd);
         }
-
         if (System.nanoTime() < paused)
         {
             setPressed(mc.options.forwardKey, false);
             return;
         }
-
         if (goingToStart)
         {
-
             if (Math.sqrt(mc.player.getBlockPos().getSquaredDistance(pd.currPos.getX(), mc.player.getY(), pd.currPos.getZ())) < 5)
             {
                 goingToStart = false;
@@ -86,7 +73,6 @@ public class Spiral extends SearchAreaMode
             }
             return;
         }
-
         setPressed(mc.options.forwardKey, true);
         mc.player.setYaw(pd.yawDirection);
         int blockGap = 16 * searchArea.rowGap.get();
@@ -107,12 +93,10 @@ public class Spiral extends SearchAreaMode
             mc.player.setVelocity(0, 0, 0);
         }
     }
-
     public static class PathingDataSpiral extends PathingData
     {
         public int spiralWidth = 0;
         public int spiralHeight = 0;
-
         public PathingDataSpiral(BlockPos initialPos, BlockPos currPos, float yawDirection, boolean mainPath, int spiralWidth, int spiralHeight)
         {
             this.initialPos = initialPos;

@@ -1,4 +1,5 @@
 package bep.hax.modules;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import java.util.List;
 import bep.hax.Bep;
 import net.minecraft.item.Item;
@@ -107,7 +108,7 @@ public class StashBrander extends Module {
     public boolean shouldMute() { return muteAnvils.get(); }
     private boolean hasValidItems(AnvilScreenHandler handler) {
         if (mc.player == null) return false;
-        for (int n = 0; n < mc.player.getInventory().main.size() + ANVIL_OFFSET; n++) {
+        for (int n = 0; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size() + ANVIL_OFFSET; n++) {
             if (n == 2) continue;
             ItemStack stack = handler.getSlot(n).getStack();
             if ((blacklistMode.get() && !itemList.get().contains(stack.getItem()))
@@ -165,7 +166,7 @@ public class StashBrander extends Module {
         ItemStack output = anvil.getSlot(AnvilScreenHandler.OUTPUT_ID).getStack();
         if (!hasValidItems(anvil)) finished();
         else if (input1.isEmpty() && input2.isEmpty()) {
-            for (int n = ANVIL_OFFSET; n < mc.player.getInventory().main.size() + ANVIL_OFFSET; n++) {
+            for (int n = ANVIL_OFFSET; n < ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size() + ANVIL_OFFSET; n++) {
                 ItemStack stack = anvil.getSlot(n).getStack();
                 if (stack.contains(DataComponentTypes.CUSTOM_NAME) && !renameNamed.get()) continue;
                 else if (stack.getName().getString().equals(itemName.get())) continue;

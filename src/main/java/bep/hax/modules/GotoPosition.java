@@ -1,4 +1,5 @@
 package bep.hax.modules;
+import bep.hax.accessor.InputAccessor;
 import bep.hax.Bep;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;

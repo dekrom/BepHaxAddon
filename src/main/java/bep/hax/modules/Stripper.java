@@ -1,4 +1,5 @@
 package bep.hax.modules;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import bep.hax.Bep;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
@@ -171,7 +172,7 @@ public class Stripper extends Module {
                     toggle();
                     return;
                 }
-                mc.player.getInventory().selectedSlot = logSlot;
+                ((PlayerInventoryAccessor) mc.player.getInventory()).setSelectedSlot(logSlot);
                 BlockPos placeAgainst = workingPos.down();
                 Vec3d target = placeAgainst.toCenterPos().add(0, 0.5, 0);
                 Rotations.rotate(getYaw(target), getPitch(target));
@@ -220,7 +221,7 @@ public class Stripper extends Module {
                     toggle();
                     return;
                 }
-                mc.player.getInventory().selectedSlot = slot;
+                ((PlayerInventoryAccessor) mc.player.getInventory()).setSelectedSlot(slot);
                 Vec3d target = targetPos.toCenterPos();
                 Rotations.rotate(getYaw(target), getPitch(target));
                 BlockHitResult hitResult = new BlockHitResult(
@@ -269,7 +270,7 @@ public class Stripper extends Module {
                     return;
                 }
                 int slot = axeSlot.get() - 1;
-                mc.player.getInventory().selectedSlot = slot;
+                ((PlayerInventoryAccessor) mc.player.getInventory()).setSelectedSlot(slot);
                 Vec3d target = targetPos.toCenterPos();
                 Rotations.rotate(getYaw(target), getPitch(target));
                 mc.interactionManager.updateBlockBreakingProgress(targetPos, Direction.UP);

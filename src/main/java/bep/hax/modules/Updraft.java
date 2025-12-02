@@ -1,4 +1,5 @@
 package bep.hax.modules;
+import bep.hax.mixin.accessor.PlayerInventoryAccessor;
 import bep.hax.Bep;
 import net.minecraft.util.Hand;
 import net.minecraft.item.Items;
@@ -106,14 +107,14 @@ public class Updraft extends Module {
             useWindCharge();
             return;
         }
-        for (int n = 0; n < (hotBarSetting.get() ? 9 : mc.player.getInventory().main.size()); n++) {
+        for (int n = 0; n < (hotBarSetting.get() ? 9 : ((PlayerInventoryAccessor) mc.player.getInventory()).getMain().size()); n++) {
             ItemStack stack = mc.player.getInventory().getStack(n);
             if (stack.getItem() == Items.WIND_CHARGE) {
                 if (n < 9) {
                     InvUtils.swap(n, true);
                 } else if (!hotBarSetting.get()) {
                     returnSlot = n;
-                    InvUtils.move().from(n).to(mc.player.getInventory().selectedSlot);
+                    InvUtils.move().from(n).to(((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot());
                 }
                 break;
             }
@@ -127,7 +128,7 @@ public class Updraft extends Module {
     }
     private void swapFromWindCharge() {
         if (returnSlot == -1) InvUtils.swapBack();
-        else InvUtils.move().from(mc.player.getInventory().selectedSlot).to(returnSlot);
+        else InvUtils.move().from(((PlayerInventoryAccessor) mc.player.getInventory()).getSelectedSlot()).to(returnSlot);
         returnSlot = -1;
         offhand = false;
         currentState = State.Idle;
@@ -145,7 +146,7 @@ public class Updraft extends Module {
     @EventHandler
     private void onKey(KeyEvent event) {
         if (mc.world == null || mc.player == null) return;
-        if (mc.options.jumpKey.matchesKey(event.key, 0)) {
+        if (mc.options.jumpKey.isPressed()) {
             if (currentState == State.Idle) {
                 if (swapSetting.get()) currentState = State.SwappingTo;
                 else currentState = State.Using;
