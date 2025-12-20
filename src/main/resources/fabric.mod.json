@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "bephax",
+  "version": "${version}",
+  "name": "Bep Hax",
+  "description": "A meteor addon collection for playing 2b2t.",
+  "authors": [
+    "dekrom",
+    "meeerkat",
+    "and many more devs."
+  ],
+  "contact": {
+    "repo": "https://github.com/dekrom/Bephax/"
+  },
+  "icon": "assets/template/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "meteor": [
+      "bep.hax.Bep"
+    ]
+  },
+  "mixins": [
+    "bep.mixins.json",
+    "bep-meteor.mixins.json"
+  ],
+  "custom": {
+    "meteor-client:color": "225,25,25"
+  },
+  "depends": {
+    "java": ">=21",
+    "minecraft": ["${mc_version}"],
+    "meteor-client": "*"
+  }
+}

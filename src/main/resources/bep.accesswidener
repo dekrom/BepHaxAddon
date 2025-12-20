@@ -1,0 +1,25 @@
+accessWidener	v1	named
+
+accessible   method  net/minecraft/client/network/ClientPlayerInteractionManager syncSelectedSlot ()V
+# Removed: accessible field net/minecraft/client/gui/DrawContext vertexConsumers - field no longer exists in 1.21.10
+accessible method net/minecraft/client/network/ClientPlayerInteractionManager sendSequencedPacket (Lnet/minecraft/client/world/ClientWorld;Lnet/minecraft/client/network/SequencedPacketCreator;)V
+accessible method net/minecraft/client/world/ClientWorld getPendingUpdateManager ()Lnet/minecraft/client/network/PendingUpdateManager;
+accessible method net/minecraft/client/texture/NativeImage setColor (III)V
+
+accessible class net/minecraft/network/packet/c2s/play/PlayerInteractEntityC2SPacket$InteractType
+accessible class net/minecraft/network/packet/c2s/play/PlayerInteractEntityC2SPacket$InteractTypeHandler
+accessible method net/minecraft/network/packet/c2s/play/PlayerInteractEntityC2SPacket$InteractTypeHandler getType ()Lnet/minecraft/network/packet/c2s/play/PlayerInteractEntityC2SPacket$InteractType;
+
+# Access widener for ItemSearchBar GUI functionality
+accessible method net/minecraft/client/gui/screen/Screen addDrawableChild (Lnet/minecraft/client/gui/Element;)Lnet/minecraft/client/gui/Element;
+accessible class net/minecraft/network/packet/c2s/play/PlayerInteractEntityC2SPacket$InteractType
+accessible field net/minecraft/entity/TrackedPosition pos Lnet/minecraft/util/math/Vec3d;
+# Removed: HeldItemRenderer equip progress fields - may have been renamed or removed in 1.21.10
+# accessible field net/minecraft/client/render/item/HeldItemRenderer prevEquipProgressMainHand F
+# accessible field net/minecraft/client/render/item/HeldItemRenderer equipProgressMainHand F
+# accessible field net/minecraft/client/render/item/HeldItemRenderer prevEquipProgressOffHand F
+# accessible field net/minecraft/client/render/item/HeldItemRenderer equipProgressOffHand F
+# Removed: accessible field net/minecraft/entity/LimbAnimator pos F - field no longer exists in 1.21.10
+accessible field net/minecraft/entity/LivingEntity leaningPitch F
+accessible field net/minecraft/entity/LivingEntity lastLeaningPitch F
+accessible method net/minecraft/client/MinecraftClient doAttack ()Z

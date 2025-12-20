@@ -1,0 +1,29 @@
+{
+  "required": false,
+  "package": "bep.hax.mixin.meteor",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "PeekScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  },
+  "mixins": [
+    "AutoEatMixin",
+    "AutoLogMixin",
+    "AutoTrapMixin",
+    "BetterTabMixin",
+    "KillAuraMixin",
+    "AutoMendMixin",
+    "NoRenderMixin",
+    "NotifierMixin",
+    "TimerMixin",
+    "VelocityMixin",
+    "OnlinePlayersMixin",
+    "BetterTooltipsMixin",
+    "PacketCancellerMixin",
+    "NoSlowMixin",
+    "PlayerUtilsMixin",
+    "ClientPlayerEntityGrimV3Mixin"
+  ]
+}
