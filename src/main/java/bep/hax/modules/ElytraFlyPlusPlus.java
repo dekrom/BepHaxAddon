@@ -140,6 +140,7 @@ public class ElytraFlyPlusPlus extends Module {
         .name("distance")
         .description("The distance to set the baritone goal for path realignment.")
         .defaultValue(10.0)
+        .sliderRange(0, 10)
         .visible(() -> bounce.get() && highwayObstaclePasser.get())
         .build()
     );
@@ -147,6 +148,8 @@ public class ElytraFlyPlusPlus extends Module {
         .name("y-level")
         .description("The Y level to bounce at. This must be correct or bounce will not start properly.")
         .defaultValue(120)
+        .range(-64, 320)
+        .sliderRange(-64, 320)
         .visible(() -> bounce.get() && highwayObstaclePasser.get())
         .build()
     );

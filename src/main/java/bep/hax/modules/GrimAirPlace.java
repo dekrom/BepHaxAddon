@@ -22,6 +22,7 @@ public class GrimAirPlace extends Module {
         .name("place-delay")
         .description("The delay in ticks between block placements.")
         .defaultValue(0)
+        .sliderRange(0, 10)
         .build()
     );
     private final Setting<Boolean> render = sgGeneral.add(new BoolSetting.Builder()

@@ -31,6 +31,7 @@ public class DiscordNotifs extends Module
         .name("message-delay")
         .description("The delay between messages in milliseconds.")
         .defaultValue(2000)
+        .sliderRange(0, 10000)
         .build()
     );
     private final Setting<Boolean> queueMessages = sgGeneral.add(new BoolSetting.Builder()
