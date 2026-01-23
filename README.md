@@ -1,5 +1,6 @@
 # BepHax Meteor Addon
 # This was made into a paid Stash Hunting addon for 2b2t but older versions are still for free use and access of people that wants. You can also access older versions of the source by going to Releases and manually clicking into the Commit number.
+ #**Discord**: [discord.gg/EGEhHNSkV8](https://discord.gg/EGEhHNSkV8)
 [![GitHub Release](https://img.shields.io/github/v/release/dekrom/BepHaxAddon?include_prereleases&label=Latest%20Release)](https://github.com/dekrom/BepHaxAddon/releases)
 [![GitHub License](https://img.shields.io/github/license/dekrom/BepHaxAddon)](https://github.com/dekrom/BepHaxAddon/blob/main/LICENSE)
 [![GitHub Issues](https://img.shields.io/github/issues/dekrom/BepHaxAddon)](https://github.com/dekrom/BepHaxAddon/issues)
@@ -310,7 +311,7 @@ Open an [issue](https://github.com/dekrom/BepHaxAddon/issues) or submit a pull r
 
 ## Community
 
-- **Discord**: [discord.gg/EGEhHNSkV8](https://discord.gg/EGEhHNSkV8)
+-
 - **GitHub**: [github.com/dekrom/BepHaxAddon](https://github.com/dekrom/BepHaxAddon)
 
 ## License
@@ -320,4 +321,5 @@ Open an [issue](https://github.com/dekrom/BepHaxAddon/issues) or submit a pull r
 ## Disclaimer
 
 Designed for anarchy servers like 2b2t.org. Use responsibly.
+
 
