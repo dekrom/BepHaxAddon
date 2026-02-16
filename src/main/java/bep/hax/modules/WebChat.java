@@ -17,8 +17,8 @@ import net.minecraft.text.TextContent;
 import net.minecraft.text.TranslatableTextContent;
 import net.minecraft.text.Style;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.dimension.DimensionType;
 import java.awt.Desktop;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -318,10 +318,10 @@ public class WebChat extends Module {
             currentX = pos.getX();
             currentY = pos.getY();
             currentZ = pos.getZ();
-            DimensionType dimType = mc.world.getDimension();
-            if (dimType.effects().toString().contains("the_nether")) {
+            Identifier dimId = mc.world.getRegistryKey().getValue();
+            if (dimId.toString().contains("the_nether")) {
                 currentDimension = "Nether";
-            } else if (dimType.effects().toString().contains("the_end")) {
+            } else if (dimId.toString().contains("the_end")) {
                 currentDimension = "End";
             } else {
                 currentDimension = "Overworld";

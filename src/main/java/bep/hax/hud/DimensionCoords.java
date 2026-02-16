@@ -93,7 +93,7 @@ public class DimensionCoords extends HudElement {
             return;
         }
         BlockPos playerPos = MeteorClient.mc.player.getBlockPos();
-        Identifier dimensionId = MeteorClient.mc.world.getDimension().effects();
+        Identifier dimensionId = MeteorClient.mc.world.getRegistryKey().getValue();
         double curX = x;
         double curY = y;
         double maxWidth = 0;

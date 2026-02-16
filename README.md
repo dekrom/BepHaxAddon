@@ -1,5 +1,17 @@
 # BepHax Meteor Addon
-# This was made into a paid Stash Hunting addon for 2b2t but older versions are still for free use and access of people that wants. You can also access older versions of the source by going to Releases and manually clicking into the Commit number. **Discord**: [discord.gg/EGEhHNSkV8](https://discord.gg/EGEhHNSkV8)
+
+> **⚠️ FINAL FREE RELEASE**
+> 
+> This is the **last free version** of BepHax. All future updates and features will be available exclusively through the **paid version**.
+> 
+> **Older versions** remain free to use and distribute. You can access previous source code by navigating to [Releases](https://github.com/dekrom/BepHaxAddon/releases) and clicking on the commit hash.
+
+<p align="center">
+  <a href="https://discord.gg/EGEhHNSkV8"><img src="https://img.shields.io/badge/Discord-Join%20Server-7289da?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
+</p>
+
+---
+
 [![GitHub Release](https://img.shields.io/github/v/release/dekrom/BepHaxAddon?include_prereleases&label=Latest%20Release)](https://github.com/dekrom/BepHaxAddon/releases)
 [![GitHub License](https://img.shields.io/github/license/dekrom/BepHaxAddon)](https://github.com/dekrom/BepHaxAddon/blob/main/LICENSE)
 [![GitHub Issues](https://img.shields.io/github/issues/dekrom/BepHaxAddon)](https://github.com/dekrom/BepHaxAddon/issues)
@@ -18,15 +30,15 @@ A comprehensive Meteor Client addon with **76 modules** designed for 2b2t.org an
 
 | Dependency | Version | Notes |
 |------------|---------|-------|
-| [Minecraft](https://minecraft.net/) | 1.21.10 | Required |
-| [Fabric Loader](https://fabricmc.net/) | 0.16.10+ | Required |
-| [Fabric API](https://modrinth.com/mod/fabric-api) | 0.119.3+ | Required |
-| [Meteor Client](https://meteorclient.com) | 1.21.10-SNAPSHOT | Required |
-| [Baritone](https://github.com/cabaletta/baritone) | 1.21.10-SNAPSHOT | Required |
+| [Minecraft](https://minecraft.net/) | 1.21.11 | Required |
+| [Fabric Loader](https://fabricmc.net/) | 0.18.2+ | Required |
+| [Fabric API](https://modrinth.com/mod/fabric-api) | 0.139.0+ | Required |
+| [Meteor Client](https://meteorclient.com) | 1.21.11-SNAPSHOT | Required |
+| [Baritone](https://github.com/cabaletta/baritone) | 1.21.11-SNAPSHOT | Required |
 | [ViaFabricPlus](https://modrinth.com/mod/viafabricplus) | Latest | **Required for silent rotations** |
-| [XaeroMinimap](https://modrinth.com/mod/xaeros-minimap) | 25.2.10+ | Required for waypoint features |
-| [XaeroWorldMap](https://modrinth.com/mod/xaeros-world-map) | 1.39.12+ | Required for map features |
-| [XaeroPlus](https://github.com/rfresh2/XaeroPlus) | 2.28.1+ | Required for enhanced map tools |
+| [XaeroMinimap](https://modrinth.com/mod/xaeros-minimap) | 25.3.10+ | Required for waypoint features |
+| [XaeroWorldMap](https://modrinth.com/mod/xaeros-world-map) | 1.40.11+ | Required for map features |
+| [XaeroPlus](https://github.com/rfresh2/XaeroPlus) | 2.30.8+ | Required for enhanced map tools |
 
 **2b2t Anti-Cheat Bypass:** Connect using **protocol 1.20.4-1.20.6** via ViaFabricPlus for silent rotation modules (Phase, Criticals, Surround, GrimScaffold) and enhanced Meteor mixins (CrystalAura, AutoTrap) to work properly.
 

@@ -34,7 +34,4 @@ public abstract class ScreenMixin extends AbstractParentElement implements Drawa
         MutableText txt = Text.literal(tos.censorText(this.title.getString()));
         this.title = txt.setStyle(this.title.getStyle());
     }
-    @Inject(method = "handleTextClick", at = @At("HEAD"), cancellable = true)
-    private void handleClickESP(@Nullable Style style, CallbackInfoReturnable<Boolean> cir) {
-    }
 }

@@ -316,7 +316,7 @@ public class AutoSmith extends Module {
             changedSlots.put(shiftClickTargetSlot, output);
             equipmentStack = null;
             Int2ObjectMap<ItemStackHash> hashMap = new Int2ObjectOpenHashMap<>();
-            changedSlots.forEach((slot, stack) -> hashMap.put(slot.intValue(), ItemStackHash.fromItemStack(stack, component -> 0)));
+            changedSlots.forEach((slot, stack) -> hashMap.put(slot, ItemStackHash.fromItemStack(stack, component -> 0)));
             return new ClickSlotC2SPacket(
                 handler.syncId, handler.getRevision(), (short) SmithingScreenHandler.OUTPUT_ID, (byte) 0,
                 SlotActionType.QUICK_MOVE, hashMap, ItemStackHash.fromItemStack(ItemStack.EMPTY, component -> 0)
@@ -338,7 +338,7 @@ public class AutoSmith extends Module {
                         changedSlots.put(SmithingScreenHandler.OUTPUT_ID, output);
                     }
                     Int2ObjectMap<ItemStackHash> hashMap = new Int2ObjectOpenHashMap<>();
-                    changedSlots.forEach((slot, stack2) -> hashMap.put(slot.intValue(), ItemStackHash.fromItemStack(stack2, component -> 0)));
+                    changedSlots.forEach((slot, stack2) -> hashMap.put(slot, ItemStackHash.fromItemStack(stack2, component -> 0)));
                     return new ClickSlotC2SPacket(
                         handler.syncId, handler.getRevision(), (short) n, (byte) 0,
                         SlotActionType.QUICK_MOVE, hashMap, ItemStackHash.fromItemStack(ItemStack.EMPTY, component -> 0)
@@ -363,7 +363,7 @@ public class AutoSmith extends Module {
                         changedSlots.put(SmithingScreenHandler.OUTPUT_ID, output);
                     }
                     Int2ObjectMap<ItemStackHash> hashMap = new Int2ObjectOpenHashMap<>();
-                    changedSlots.forEach((slot, stack2) -> hashMap.put(slot.intValue(), ItemStackHash.fromItemStack(stack2, component -> 0)));
+                    changedSlots.forEach((slot, stack2) -> hashMap.put(slot, ItemStackHash.fromItemStack(stack2, component -> 0)));
                     return new ClickSlotC2SPacket(
                         handler.syncId, handler.getRevision(), (short) n, (byte) 0,
                         SlotActionType.QUICK_MOVE, hashMap, ItemStackHash.fromItemStack(ItemStack.EMPTY, component -> 0)
@@ -388,7 +388,7 @@ public class AutoSmith extends Module {
                         changedSlots.put(SmithingScreenHandler.OUTPUT_ID, output);
                     }
                     Int2ObjectMap<ItemStackHash> hashMap = new Int2ObjectOpenHashMap<>();
-                    changedSlots.forEach((slot, stack2) -> hashMap.put(slot.intValue(), ItemStackHash.fromItemStack(stack2, component -> 0)));
+                    changedSlots.forEach((slot, stack2) -> hashMap.put(slot, ItemStackHash.fromItemStack(stack2, component -> 0)));
                     return new ClickSlotC2SPacket(
                         handler.syncId, handler.getRevision(), (short) n, (byte) 0,
                         SlotActionType.QUICK_MOVE, hashMap, ItemStackHash.fromItemStack(ItemStack.EMPTY, component -> 0)

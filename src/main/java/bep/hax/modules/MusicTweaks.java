@@ -11,7 +11,6 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.client.MinecraftClient;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.client.sound.MusicInstance;
 import net.minecraft.client.sound.SoundInstance;
 import meteordevelopment.meteorclient.settings.*;
 import bep.hax.mixin.accessor.MusicTrackerAccessor;
@@ -1002,7 +1001,7 @@ public class MusicTweaks extends Module {
     public void onActivate() {
         if (!startOnEnable.get()) return;
         MusicSound type = getType();
-        if (((MusicTrackerAccessor) mc.getMusicTracker()).getCurrent() == null) mc.getMusicTracker().play(new MusicInstance(type));
+        if (((MusicTrackerAccessor) mc.getMusicTracker()).getCurrent() == null) mc.getMusicTracker().play(type);
     }
     @Override
     public void onDeactivate() {
@@ -1014,9 +1013,9 @@ public class MusicTweaks extends Module {
         SoundInstance instance = ((MusicTrackerAccessor) mc.getMusicTracker()).getCurrent();
         if (instance != null) {
             MusicSound type = getType();
-            if (type != mc.getMusicInstance().music()) {
+            if (type != mc.getMusicInstance()) {
                 mc.getMusicTracker().stop();
-                mc.getMusicTracker().play(new MusicInstance(type));
+                mc.getMusicTracker().play(type);
             }
         }
         if (mc.world != null) {
@@ -1032,7 +1031,7 @@ public class MusicTweaks extends Module {
             if (!dimensionType.equals(lastDim)) {
                 MusicSound type = getType();
                 mc.getMusicTracker().stop();
-                mc.getMusicTracker().play(new MusicInstance(type));
+                mc.getMusicTracker().play(type);
                 lastDim = dimensionType;
             }
         }

@@ -138,7 +138,7 @@ public class Panorama extends Command {
         switch (screenshot) {
             case 0 -> {
                 if (!isWarming) {
-                    instance.gameRenderer.setRenderingPanorama(true);
+                    // Note: setRenderingPanorama removed in 1.21.11
                     instance.gameRenderer.setBlockOutlineEnabled(false);
                     instance.worldRenderer.reload();
                     if (!instance.options.hudHidden) instance.options.hudHidden = true;
@@ -185,7 +185,7 @@ public class Panorama extends Command {
                     takingPanorama = false;
                     instance.player.setYaw(preYaw);
                     instance.player.setPitch(prePitch);
-                    instance.gameRenderer.setRenderingPanorama(false);
+                    // Note: setRenderingPanorama removed in 1.21.11
                     instance.gameRenderer.setBlockOutlineEnabled(true);
                     instance.getWindow().setFramebufferWidth(preWidth);
                     instance.getWindow().setFramebufferHeight(preHeight);

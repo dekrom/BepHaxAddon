@@ -1,25 +1,25 @@
 [versions]
-mod-version = "0.5"
+mod-version = "Final"
 
 # Fabric (https://fabricmc.net/develop)
-minecraft = "1.21.10"
-yarn-mappings = "1.21.10+build.2"
-fabric-loader = "0.17.3"
-fabric-api = "0.138.3+1.21.10"
+minecraft = "1.21.11"
+yarn-mappings = "1.21.11+build.3"
+fabric-loader = "0.18.2"
+fabric-api = "0.139.0+1.21.11"
 
 # Loom (https://github.com/FabricMC/fabric-loom)
-loom = "1.13.4"
+loom = "1.14-SNAPSHOT"
 
 # Meteor (https://github.com/MeteorDevelopment/meteor-client/)
-meteor = "1.21.10-SNAPSHOT"
+meteor = "1.21.11-SNAPSHOT"
 
 # Baritone
-baritone = "1.21.10-SNAPSHOT"
+baritone = "1.21.11-SNAPSHOT"
 
 # Mods
-xaeroplus = "2.29.0+fabric-1.21.10"
-xaeros-worldmap = "1.39.17_Fabric_1.21.9"
-xaeros-minimap = "25.2.15_Fabric_1.21.9"
+xaeroplus = "2.30.8+fabric-1.21.11"
+xaeros-worldmap = "fabric-1.21.11-1.40.11"
+xaeros-minimap = "fabric-1.21.11-25.3.10"
 
 # Libraries
 lambdaevents = "2.4.2"

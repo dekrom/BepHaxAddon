@@ -25,15 +25,9 @@ public abstract class ClientPlayerEntityMixin {
     @Shadow public Input input;
     @Shadow public abstract boolean isUsingItem();
     @Shadow public abstract boolean isSneaking();
-    @Inject(method = "playSoundToPlayer", at = @At("HEAD"), cancellable = true)
-    private void mixinPlaySound(SoundEvent sound, SoundCategory category, float volume, float pitch, CallbackInfo ci) {
-        Modules modules = Modules.get();
-        if (modules == null) return;
-        RocketMan rocketMan = modules.get(RocketMan.class);
-        if (rocketMan.isActive() && sound == SoundEvents.ITEM_ELYTRA_FLYING) {
-            if (rocketMan.shouldMuteElytra()) ci.cancel();
-        }
-    }
+
+    // Note: playSoundToPlayer method removed in 1.21.11
+
     @Inject(method = "pushOutOfBlocks", at = @At("HEAD"), cancellable = true)
     private void onPushOutOfBlocks(double x, double z, CallbackInfo ci) {
         PushOutOfBlocksEvent event = new PushOutOfBlocksEvent();

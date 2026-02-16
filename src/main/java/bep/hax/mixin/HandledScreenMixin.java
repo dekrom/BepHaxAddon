@@ -131,7 +131,7 @@ public abstract class HandledScreenMixin extends Screen {
         return super.charTyped(input);
     }
     @Inject(method = "drawSlot", at = @At("HEAD"))
-    private void onDrawSlotHead(DrawContext context, Slot slot, CallbackInfo ci) {
+    private void onDrawSlotHead(DrawContext context, Slot slot, int x, int y, CallbackInfo ci) {
         if (itemSearchModule != null && itemSearchModule.isActive() && slot.hasStack()) {
             if (itemSearchModule.shouldHighlightSlot(slot.getStack())) {
                 context.fill(slot.x, slot.y, slot.x + 16, slot.y + 16,
@@ -140,7 +140,7 @@ public abstract class HandledScreenMixin extends Screen {
         }
     }
     @Inject(method = "drawSlot", at = @At("TAIL"))
-    private void onDrawSlotTail(DrawContext context, Slot slot, CallbackInfo ci) {
+    private void onDrawSlotTail(DrawContext context, Slot slot, int x, int y, CallbackInfo ci) {
         ShulkerOverviewModule shulkerModule = Modules.get().get(ShulkerOverviewModule.class);
         if (shulkerModule != null && shulkerModule.isActive()) {
             shulkerModule.renderShulkerOverlay(context, slot.x, slot.y, slot.getStack());

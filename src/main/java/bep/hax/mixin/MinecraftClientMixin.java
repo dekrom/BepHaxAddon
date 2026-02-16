@@ -13,7 +13,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.sound.MusicInstance;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -123,14 +122,14 @@ public class MinecraftClientMixin {
         }
     }
     @Inject(method = "getMusicInstance", at = @At("HEAD"), cancellable = true)
-    public void mixinGetMusicType(CallbackInfoReturnable<MusicInstance> cir) {
+    public void mixinGetMusicType(CallbackInfoReturnable<MusicSound> cir) {
         Modules modules = Modules.get();
         if (modules == null ) return;
         MusicTweaks tweaks = modules.get(MusicTweaks.class);
         if (tweaks == null || !tweaks.isActive()) return;
         MusicSound type = tweaks.getType();
         if (type != null) {
-            cir.setReturnValue(new MusicInstance(type));
+            cir.setReturnValue(type);
         }
     }
 }

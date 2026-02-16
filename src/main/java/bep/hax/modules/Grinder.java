@@ -185,7 +185,7 @@ public class Grinder extends Module {
             combinedItem = null;
             currentTarget = null;
             it.unimi.dsi.fastutil.ints.Int2ObjectMap<ItemStackHash> hashMap = new it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<>();
-            changedSlots.forEach((slot, s) -> hashMap.put(slot.intValue(), ItemStackHash.fromItemStack(s, component -> 0)));
+            changedSlots.forEach((slot, s) -> hashMap.put(slot, ItemStackHash.fromItemStack(s, component -> 0)));
             return new ClickSlotC2SPacket(
                 handler.syncId, handler.getRevision(), (short) 2, (byte) 0,
                 SlotActionType.QUICK_MOVE, hashMap, ItemStackHash.fromItemStack(ItemStack.EMPTY, component -> 0)
@@ -204,7 +204,7 @@ public class Grinder extends Module {
                 changedSlots.put(n, ItemStack.EMPTY);
                 changedSlots.put(2, ((GrindstoneScreenHandlerAccessor) handler).invokeGrind(combinedItem));
             it.unimi.dsi.fastutil.ints.Int2ObjectMap<ItemStackHash> hashMap = new it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<>();
-            changedSlots.forEach((slot, s) -> hashMap.put(slot.intValue(), ItemStackHash.fromItemStack(s, component -> 0)));
+            changedSlots.forEach((slot, s) -> hashMap.put(slot, ItemStackHash.fromItemStack(s, component -> 0)));
                 return new ClickSlotC2SPacket(
                     handler.syncId, handler.getRevision(), (short) n, (byte) 0,
                     SlotActionType.QUICK_MOVE, hashMap, ItemStackHash.fromItemStack(ItemStack.EMPTY, component -> 0)
@@ -226,7 +226,7 @@ public class Grinder extends Module {
                 changedSlots.put(2, ((GrindstoneScreenHandlerAccessor) handler).invokeGrind(stack));
                 if (!combine.get()) combinedItem = ItemStack.EMPTY;
             it.unimi.dsi.fastutil.ints.Int2ObjectMap<ItemStackHash> hashMap = new it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<>();
-            changedSlots.forEach((slot, s) -> hashMap.put(slot.intValue(), ItemStackHash.fromItemStack(s, component -> 0)));
+            changedSlots.forEach((slot, s) -> hashMap.put(slot, ItemStackHash.fromItemStack(s, component -> 0)));
                 return new ClickSlotC2SPacket(
                     handler.syncId, handler.getRevision(), (short) n, (byte) 0,
                     SlotActionType.QUICK_MOVE, hashMap, ItemStackHash.fromItemStack(ItemStack.EMPTY, component -> 0)

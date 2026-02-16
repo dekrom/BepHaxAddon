@@ -1,0 +1,70 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Get version from libs.versions.toml
+        id: get_version
+        run: |
+          VERSION=$(grep 'mod-version' gradle/libs.versions.toml | cut -d'"' -f2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: BepHax ${{ steps.get_version.outputs.version }}
+          body: |
+            ## BepHax ${{ steps.get_version.outputs.version }}
+            
+            **⚠️ FINAL FREE RELEASE**
+            
+            This is the last free version of BepHax. Future updates will be paid only.
+            
+            ### Requirements
+            - Minecraft 1.21.11
+            - Fabric Loader 0.18.2+
+            - Meteor Client 1.21.11-SNAPSHOT
+            
+            ### Installation
+            1. Download `BepHax-${{ steps.get_version.outputs.version }}.jar`
+            2. Place in your `mods` folder
+            3. Launch with Fabric + Meteor Client
+            
+            **Discord:** [discord.gg/EGEhHNSkV8](https://discord.gg/EGEhHNSkV8)
+          files: build/libs/BepHax-${{ steps.get_version.outputs.version }}.jar
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

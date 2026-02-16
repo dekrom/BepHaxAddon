@@ -270,7 +270,7 @@ public class AutoMason extends Module {
             targetStack = null;
             outputStack = null;
             it.unimi.dsi.fastutil.ints.Int2ObjectMap<ItemStackHash> hashMap = new it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<>();
-            changedSlots.forEach((slot, stack) -> hashMap.put(slot.intValue(), ItemStackHash.fromItemStack(stack, component -> 0)));
+            changedSlots.forEach((slot, stack) -> hashMap.put(slot, ItemStackHash.fromItemStack(stack, component -> 0)));
             return new ClickSlotC2SPacket(
                 handler.syncId, handler.getRevision(), (short) 1, (byte) 0,
                 SlotActionType.QUICK_MOVE, hashMap, ItemStackHash.fromItemStack(ItemStack.EMPTY, component -> 0)
@@ -300,7 +300,7 @@ public class AutoMason extends Module {
                 changedSlots.put(0, stack);
                 changedSlots.put(n, ItemStack.EMPTY);
                 it.unimi.dsi.fastutil.ints.Int2ObjectMap<ItemStackHash> hashMap = new it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<>();
-                changedSlots.forEach((slot, stack2) -> hashMap.put(slot.intValue(), ItemStackHash.fromItemStack(stack2, component -> 0)));
+                changedSlots.forEach((slot, stack2) -> hashMap.put(slot, ItemStackHash.fromItemStack(stack2, component -> 0)));
                 return new ClickSlotC2SPacket(
                     handler.syncId, handler.getRevision(), (short) n, (byte) 0,
                     SlotActionType.QUICK_MOVE, hashMap, ItemStackHash.fromItemStack(ItemStack.EMPTY, component -> 0)
