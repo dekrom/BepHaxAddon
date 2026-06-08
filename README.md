@@ -5,6 +5,8 @@
 > This is the **last free version** of BepHax. All future updates and features will be available exclusively through the **paid version**.
 > 
 > **Older versions** remain free to use and distribute. You can access previous source code by navigating to [Releases](https://github.com/dekrom/BepHaxAddon/releases) and clicking on the commit hash.
+>
+> If you wanna buy recent versions visit https://bep.dek.to/
 
 <p align="center">
   <a href="https://discord.gg/EGEhHNSkV8"><img src="https://img.shields.io/badge/Discord-Join%20Server-7289da?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
